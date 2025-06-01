@@ -125,3 +125,7 @@ require __DIR__.'/auth.php';
 
 
 
+// Route pour mise à jour des informations
+Route::middleware(['auth', 'role:etudiant'])->group(function () {
+    Route::put('/etudiant/update-infos', [EtudiantController::class, 'updateInfos'])->name('etudiant.update-infos');
+});
