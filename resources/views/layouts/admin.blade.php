@@ -19,16 +19,13 @@
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             border: 1px solid rgba(0, 0, 0, 0.125);
         }
-        .btn-group .btn {
-            border-radius: 0;
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #f8f9fa;
         }
-        .btn-group .btn:first-child {
-            border-top-left-radius: 0.375rem;
-            border-bottom-left-radius: 0.375rem;
-        }
-        .btn-group .btn:last-child {
-            border-top-right-radius: 0.375rem;
-            border-bottom-right-radius: 0.375rem;
+        .nav-link.active {
+            background-color: #007bff;
+            color: white !important;
         }
         .table th {
             border-top: none;
@@ -61,16 +58,50 @@
                             <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.enseignants.*') || request()->routeIs('admin.etudiants.*') ? 'active' : '' }}"
+                           href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-users"></i> Utilisateurs
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('admin.enseignants.index') }}">
+                                <i class="fas fa-chalkboard-teacher"></i> Enseignants
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.etudiants.index') }}">
+                                <i class="fas fa-user-graduate"></i> Étudiants
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.matieres.*') || request()->routeIs('admin.classes.*') ? 'active' : '' }}"
+                           href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-book"></i> Pédagogie
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('admin.matieres.index') }}">
+                                <i class="fas fa-book-open"></i> Matières
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.classes.index') }}">
+                                <i class="fas fa-door-open"></i> Classes
+                            </a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.enseignants.*') ? 'active' : '' }}"
-                           href="{{ route('admin.enseignants.index') }}">
-                            <i class="fas fa-chalkboard-teacher"></i> Enseignants
+                        <a class="nav-link {{ request()->routeIs('admin.affectations.*') ? 'active' : '' }}"
+                           href="{{ route('admin.affectations.index') }}">
+                            <i class="fas fa-link"></i> Affectations
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.etudiants.*') ? 'active' : '' }}"
-                           href="{{ route('admin.etudiants.index') }}">
-                            <i class="fas fa-user-graduate"></i> Étudiants
+                        <a class="nav-link {{ request()->routeIs('admin.annees.*') ? 'active' : '' }}"
+                           href="{{ route('admin.annees.index') }}">
+                            <i class="fas fa-calendar-alt"></i> Années
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.rapports.*') ? 'active' : '' }}"
+                           href="{{ route('admin.rapports.index') }}">
+                            <i class="fas fa-chart-bar"></i> Rapports
                         </a>
                     </li>
                 </ul>
@@ -134,10 +165,10 @@
         @yield('content')
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Configuration CSRF pour AJAX
@@ -152,20 +183,13 @@
             e.preventDefault();
             const query = $('#global-search').val();
             if (query.length > 2) {
-                // Vérifier si la route existe avant de faire la requête
-                @if(Route::has('admin.search'))
-                    $.get('{{ route("admin.search") }}', { q: query })
-                        .done(function(data) {
-                            console.log('Résultats de recherche:', data);
-                            // Ici vous pouvez afficher les résultats dans un dropdown
-                        })
-                        .fail(function() {
-                            console.log('Erreur lors de la recherche');
-                        });
-                @else
-                    console.log('Fonction de recherche non encore implémentée');
-                    alert('Recherche : "' + query + '"\nFonctionnalité en cours de développement.');
-                @endif
+                $.get('{{ route("admin.search") }}', { q: query })
+                    .done(function(data) {
+                        console.log('Résultats de recherche:', data);
+                    })
+                    .fail(function() {
+                        console.log('Erreur lors de la recherche');
+                    });
             }
         });
 

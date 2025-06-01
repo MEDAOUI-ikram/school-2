@@ -39,6 +39,53 @@ Route::middleware(['auth', 'roleMid:admin'])->group(function () {
     Route::get('/admin/etudiants/{etudiant}/edit', [AdminController::class, 'editEtudiant'])->name('admin.etudiants.edit');
     Route::put('/admin/etudiants/{etudiant}', [AdminController::class, 'updateEtudiant'])->name('admin.etudiants.update');
     Route::delete('/admin/etudiants/{etudiant}', [AdminController::class, 'destroyEtudiant'])->name('admin.etudiants.destroy');
+    // Gestion des matières
+
+
+        Route::get('/', [AdminController::class, 'indexMatieres'])->name('admin.matieres.index');
+        Route::get('/create', [AdminController::class, 'createMatiere'])->name('create');
+        Route::post('/', [AdminController::class, 'storeMatiere'])->name('store');
+        Route::get('/{matiere}', [AdminController::class, 'showMatiere'])->name('show');
+        Route::get('/{matiere}/edit', [AdminController::class, 'editMatiere'])->name('edit');
+        Route::put('/{matiere}', [AdminController::class, 'updateMatiere'])->name('update');
+        Route::delete('/{matiere}', [AdminController::class, 'destroyMatiere'])->name('destroy');
+
+    // Gestion des classes
+
+        Route::get('/', [AdminController::class, 'indexClasses'])->name('admin.classes.index');
+        Route::get('/create', [AdminController::class, 'createClasse'])->name('create');
+        Route::post('/', [AdminController::class, 'storeClasse'])->name('store');
+        Route::get('/{classe}', [AdminController::class, 'showClasse'])->name('show');
+        Route::get('/{classe}/edit', [AdminController::class, 'editClasse'])->name('edit');
+        Route::put('/{classe}', [AdminController::class, 'updateClasse'])->name('update');
+        Route::delete('/{classe}', [AdminController::class, 'destroyClasse'])->name('destroy');
+
+    // Gestion des affectations
+    Route::prefix('affectations')->name('affectations.')->group(function () {
+        Route::get('/', [AdminController::class, 'indexAffectations'])->name('index');
+        Route::get('/create', [AdminController::class, 'createAffectation'])->name('create');
+        Route::post('/', [AdminController::class, 'storeAffectation'])->name('store');
+        Route::delete('/{affectation}', [AdminController::class, 'destroyAffectation'])->name('destroy');
+    });
+
+    // Gestion des années scolaires
+    Route::prefix('annees')->name('annees.')->group(function () {
+        Route::get('/', [AdminController::class, 'indexAnnees'])->name('index');
+        Route::get('/create', [AdminController::class, 'createAnnee'])->name('create');
+        Route::post('/', [AdminController::class, 'storeAnnee'])->name('store');
+        Route::get('/{annee}/edit', [AdminController::class, 'editAnnee'])->name('edit');
+        Route::put('/{annee}', [AdminController::class, 'updateAnnee'])->name('update');
+        Route::delete('/{annee}', [AdminController::class, 'destroyAnnee'])->name('destroy');
+    });
+
+    // Rapports
+    Route::prefix('rapports')->name('rapports.')->group(function () {
+        Route::get('/', [AdminController::class, 'rapports'])->name('index');
+        Route::get('/general', [AdminController::class, 'rapportGeneral'])->name('general');
+        Route::get('/enseignants', [AdminController::class, 'rapportEnseignants'])->name('enseignants');
+        Route::get('/classes', [AdminController::class, 'rapportClasses'])->name('classes');
+        Route::get('/matieres', [AdminController::class, 'rapportMatieres'])->name('matieres');
+    });
      // Routes utilitaires
      Route::get('/admin/search', [AdminController::class, 'search'])->name('admin.search');
    // Routes Export/Import/Bulk
