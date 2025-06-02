@@ -45,20 +45,22 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-5">
-                    <div class="d-flex gap-2">
-                        @if($search || $niveau)
-                            <a href="{{ route('admin.etudiants.index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i> Effacer
-                            </a>
-                        @endif
-                        <button type="button" class="btn btn-outline-danger" id="bulk-delete-btn" style="display: none;">
-                            <i class="fas fa-trash"></i> Supprimer sélectionnés (<span id="selected-count">0</span>)
-                        </button>
-                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="fas fa-download"></i> Exporter
-                        </button>
-                    </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="classe" onchange="this.form.submit()">
+                        <option value="">Toutes les classes</option>
+                        @foreach($classes as $classeOption)
+                            <option value="{{ $classeOption->id }}" {{ $classe == $classeOption->id ? 'selected' : '' }}>
+                                {{ $classeOption->nom_classe }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    @if($search || $niveau || $classe)
+                        <a href="{{ route('admin.etudiants.index') }}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times"></i> Effacer
+                        </a>
+                    @endif
                 </div>
             </div>
         </form>
@@ -82,13 +84,11 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 50px;">
-                                <input type="checkbox" id="select-all" class="form-check-input">
-                            </th>
-                            <th>Nom</th>
+                            <th>Étudiant</th>
                             <th>Email</th>
                             <th>Niveau</th>
                             <th>Classes</th>
+                            <th>Age</th>
                             <th>Créé le</th>
                             <th style="width: 150px;">Actions</th>
                         </tr>
@@ -97,9 +97,6 @@
                         @foreach($etudiants as $etudiant)
                             <tr>
                                 <td>
-                                    <input type="checkbox" class="form-check-input select-item" value="{{ $etudiant->id }}">
-                                </td>
-                                <td>
                                     <div class="d-flex align-items-center">
                                         <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
                                              style="width: 35px; height: 35px;">
@@ -107,6 +104,9 @@
                                         </div>
                                         <div>
                                             <strong>{{ $etudiant->nom }}</strong>
+                                            @if($etudiant->telephone)
+                                                <br><small class="text-muted">{{ $etudiant->telephone }}</small>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
@@ -120,8 +120,15 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-secondary">
-                                       groupe {{ $etudiant->classes->count() }}
+                                        {{ $etudiant->classes_count }} classe(s)
                                     </span>
+                                </td>
+                                <td>
+                                    @if($etudiant->date_naissance)
+                                        {{ $etudiant->date_naissance->age }} ans
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <small class="text-muted">
@@ -139,7 +146,7 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-outline-danger"
-                                                onclick="confirmDelete({{ $etudiant->id }}, '{{ $etudiant->nom }}')" title="Supprimer">
+                                                onclick="confirmDelete({{ $etudiant->id }}, '{{ addslashes($etudiant->nom) }}')" title="Supprimer">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -171,7 +178,7 @@
                 <i class="fas fa-user-slash fa-4x text-muted mb-3"></i>
                 <h5>Aucun étudiant trouvé</h5>
                 <p class="text-muted">
-                    @if($search || $niveau)
+                    @if($search || $niveau || $classe)
                         Aucun résultat pour les critères sélectionnés
                     @else
                         Commencez par ajouter votre premier étudiant
@@ -184,89 +191,10 @@
         @endif
     </div>
 </div>
-
-<!-- Modal d'export -->
-<div class="modal fade" id="exportModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-download"></i> Exporter les Étudiants</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Choisissez le format d'export :</p>
-                <div class="d-grid gap-2">
-                    <a href="{{ route('admin.export.users', ['type' => 'etudiants', 'format' => 'excel']) }}"
-                       class="btn btn-success">
-                        <i class="fas fa-file-excel"></i> Excel (.xlsx)
-                    </a>
-                    <a href="{{ route('admin.export.users', ['type' => 'etudiants', 'format' => 'csv']) }}"
-                       class="btn btn-info">
-                        <i class="fas fa-file-csv"></i> CSV
-                    </a>
-                    <a href="{{ route('admin.export.users', ['type' => 'etudiants', 'format' => 'pdf']) }}"
-                       class="btn btn-danger">
-                        <i class="fas fa-file-pdf"></i> PDF
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Gestion de la sélection multiple
-    $('#select-all').change(function() {
-        $('.select-item').prop('checked', this.checked);
-        toggleBulkDelete();
-    });
-
-    $('.select-item').change(function() {
-        const totalItems = $('.select-item').length;
-        const checkedItems = $('.select-item:checked').length;
-
-        $('#select-all').prop('checked', checkedItems === totalItems);
-        $('#select-all').prop('indeterminate', checkedItems > 0 && checkedItems < totalItems);
-
-        toggleBulkDelete();
-    });
-
-    function toggleBulkDelete() {
-        const selected = $('.select-item:checked').length;
-        $('#selected-count').text(selected);
-
-        if (selected > 0) {
-            $('#bulk-delete-btn').show();
-        } else {
-            $('#bulk-delete-btn').hide();
-        }
-    }
-
-    // Suppression en masse
-    $('#bulk-delete-btn').click(function() {
-        const selected = $('.select-item:checked').map(function() {
-            return this.value;
-        }).get();
-
-        if (selected.length > 0) {
-            if (confirm(`Êtes-vous sûr de vouloir supprimer ${selected.length} étudiant(s) sélectionné(s) ?`)) {
-                $.post('{{ route("admin.bulk.delete") }}', {
-                    _token: '{{ csrf_token() }}',
-                    type: 'etudiant',
-                    ids: selected
-                }).done(function(response) {
-                    location.reload();
-                }).fail(function() {
-                    alert('Erreur lors de la suppression');
-                });
-            }
-        }
-    });
-});
-
 // Fonction de confirmation de suppression
 function confirmDelete(id, nom) {
     if (confirm(`Êtes-vous sûr de vouloir supprimer l'étudiant "${nom}" ?`)) {
@@ -275,4 +203,3 @@ function confirmDelete(id, nom) {
 }
 </script>
 @endpush
-
