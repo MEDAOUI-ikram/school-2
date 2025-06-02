@@ -30,6 +30,7 @@ class AdminController extends Controller
             'total_matieres' => Matiere::count(),
             'total_niveaux' => Niveau::count(),
             'total_annees' => AnneeScolaire::count(),
+            'total_affectations' => ClasseEnseignantMatiere::count(),
         ];
 
         // Statistiques par niveau
@@ -38,8 +39,9 @@ class AdminController extends Controller
         // Dernières activités
         $dernieresClasses = Classe::with('niveau')->latest()->take(5)->get();
         $dernieresMatieres = Matiere::with(['enseignant', 'niveau'])->latest()->take(5)->get();
+        $dernieresAffectations = ClasseEnseignantMatiere::with(['classe', 'enseignant', 'matiere'])->latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'statsParNiveau', 'dernieresClasses', 'dernieresMatieres'));
+        return view('admin.dashboard', compact('stats', 'statsParNiveau', 'dernieresClasses', 'dernieresMatieres', 'dernieresAffectations'));
     }
 
     // ========================================
@@ -82,6 +84,8 @@ class AdminController extends Controller
             'courriel' => 'required|email|unique:enseignants,courriel',
             'mot_de_passe' => 'required|min:6',
             'specialite' => 'nullable|string|max:255',
+            'telephone' => 'nullable|string|max:20',
+            'adresse' => 'nullable|string',
         ]);
 
         $validated['mot_de_passe'] = Hash::make($validated['mot_de_passe']);
@@ -95,7 +99,10 @@ class AdminController extends Controller
     public function showEnseignant(Enseignant $enseignant)
     {
         $enseignant->load(['matieres.niveau', 'classes.niveau']);
-        return view('admin.enseignants.show', compact('enseignant'));
+        $affectations = ClasseEnseignantMatiere::where('enseignant_id', $enseignant->id)
+                                               ->with(['classe.niveau', 'matiere'])
+                                               ->get();
+        return view('admin.enseignants.show', compact('enseignant', 'affectations'));
     }
 
     public function editEnseignant(Enseignant $enseignant)
@@ -110,6 +117,8 @@ class AdminController extends Controller
             'courriel' => 'required|email|unique:enseignants,courriel,' . $enseignant->id,
             'mot_de_passe' => 'nullable|min:6|confirmed',
             'specialite' => 'nullable|string|max:255',
+            'telephone' => 'nullable|string|max:20',
+            'adresse' => 'nullable|string',
         ]);
 
         if (!empty($validated['mot_de_passe'])) {
@@ -185,6 +194,10 @@ class AdminController extends Controller
             'courriel' => 'required|email|unique:etudiants,courriel',
             'mot_de_passe' => 'required|min:6|confirmed',
             'niveau' => 'required|string',
+            'date_naissance' => 'nullable|date',
+            'lieu_naissance' => 'nullable|string|max:255',
+            'telephone' => 'nullable|string|max:20',
+            'adresse' => 'nullable|string',
         ]);
 
         $validated['mot_de_passe'] = Hash::make($validated['mot_de_passe']);
@@ -214,6 +227,10 @@ class AdminController extends Controller
             'courriel' => 'required|email|unique:etudiants,courriel,' . $etudiant->id,
             'mot_de_passe' => 'nullable|min:6|confirmed',
             'niveau' => 'required|string',
+            'date_naissance' => 'nullable|date',
+            'lieu_naissance' => 'nullable|string|max:255',
+            'telephone' => 'nullable|string|max:20',
+            'adresse' => 'nullable|string',
         ]);
 
         if (!empty($validated['mot_de_passe'])) {
@@ -259,7 +276,7 @@ class AdminController extends Controller
             $query->where('enseignant_id', $enseignant_id);
         }
 
-        $matieres = $query->orderBy('nom_matiere')->paginate(10);
+        $matieres = $query->withCount('classes')->orderBy('nom_matiere')->paginate(10);
         $niveaux = Niveau::all();
         $enseignants = Enseignant::orderBy('nom')->get();
 
@@ -281,6 +298,7 @@ class AdminController extends Controller
             'niveau_id' => 'required|exists:niveaux,id',
             'enseignant_id' => 'nullable|exists:enseignants,id',
             'description' => 'nullable|string',
+            'heures_par_semaine' => 'nullable|numeric|min:1|max:20',
         ]);
 
         $matiere = Matiere::create($validated);
@@ -292,7 +310,10 @@ class AdminController extends Controller
     public function showMatiere(Matiere $matiere)
     {
         $matiere->load(['niveau', 'enseignant', 'classes.etudiants']);
-        return view('admin.matieres.show', compact('matiere'));
+        $affectations = ClasseEnseignantMatiere::where('matiere_id', $matiere->id)
+                                               ->with(['classe.niveau', 'enseignant'])
+                                               ->get();
+        return view('admin.matieres.show', compact('matiere', 'affectations'));
     }
 
     public function editMatiere(Matiere $matiere)
@@ -310,6 +331,7 @@ class AdminController extends Controller
             'niveau_id' => 'required|exists:niveaux,id',
             'enseignant_id' => 'nullable|exists:enseignants,id',
             'description' => 'nullable|string',
+            'heures_par_semaine' => 'nullable|numeric|min:1|max:20',
         ]);
 
         $matiere->update($validated);
@@ -377,6 +399,8 @@ class AdminController extends Controller
             'nom_classe' => 'required|string|max:255',
             'niveau_id' => 'required|exists:niveaux,id',
             'annee' => 'required|integer|min:2020|max:2030',
+            'capacite_max' => 'nullable|integer|min:1|max:50',
+            'description' => 'nullable|string',
         ]);
 
         $classe = Classe::create($validated);
@@ -388,7 +412,10 @@ class AdminController extends Controller
     public function showClasse(Classe $classe)
     {
         $classe->load(['niveau', 'etudiants', 'enseignants.matieres', 'matieres.enseignant']);
-        return view('admin.classes.show', compact('classe'));
+        $affectations = ClasseEnseignantMatiere::where('classe_id', $classe->id)
+                                               ->with(['enseignant', 'matiere'])
+                                               ->get();
+        return view('admin.classes.show', compact('classe', 'affectations'));
     }
 
     public function editClasse(Classe $classe)
@@ -404,6 +431,8 @@ class AdminController extends Controller
             'nom_classe' => 'required|string|max:255',
             'niveau_id' => 'required|exists:niveaux,id',
             'annee' => 'required|integer|min:2020|max:2030',
+            'capacite_max' => 'nullable|integer|min:1|max:50',
+            'description' => 'nullable|string',
         ]);
 
         $classe->update($validated);
@@ -472,6 +501,9 @@ class AdminController extends Controller
             'classe_id' => 'required|exists:classes,id',
             'enseignant_id' => 'required|exists:enseignants,id',
             'matiere_id' => 'required|exists:matieres,id',
+            'heures_par_semaine' => 'nullable|numeric|min:1|max:20',
+            'coefficient' => 'nullable|numeric|min:0.5|max:10',
+            'notes' => 'nullable|string',
         ]);
 
         // Vérifier si l'affectation existe déjà
@@ -521,6 +553,8 @@ class AdminController extends Controller
             'libelle' => 'required|string|max:255|unique:annee_scolaires,libelle',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after:date_debut',
+            'description' => 'nullable|string',
+            'active' => 'boolean',
         ]);
 
         AnneeScolaire::create($validated);
@@ -540,6 +574,8 @@ class AdminController extends Controller
             'libelle' => 'required|string|max:255|unique:annee_scolaires,libelle,' . $annee->id,
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after:date_debut',
+            'description' => 'nullable|string',
+            'active' => 'boolean',
         ]);
 
         $annee->update($validated);
@@ -572,6 +608,7 @@ class AdminController extends Controller
             'total_classes' => Classe::count(),
             'total_matieres' => Matiere::count(),
             'total_affectations' => ClasseEnseignantMatiere::count(),
+            'total_niveaux' => Niveau::count(),
         ];
 
         $statsParNiveau = Niveau::withCount(['classes', 'matieres'])->get();
@@ -580,7 +617,13 @@ class AdminController extends Controller
                               ->orderBy('annee', 'desc')
                               ->get();
 
-        return view('admin.rapports.general', compact('stats', 'statsParNiveau', 'statsParAnnee'));
+        $evolutionEtudiants = Etudiant::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as total'))
+                                     ->groupBy('date')
+                                     ->orderBy('date', 'desc')
+                                     ->take(30)
+                                     ->get();
+
+        return view('admin.rapports.general', compact('stats', 'statsParNiveau', 'statsParAnnee', 'evolutionEtudiants'));
     }
 
     public function rapportEnseignants()
@@ -590,7 +633,12 @@ class AdminController extends Controller
                                 ->orderBy('nom')
                                 ->get();
 
-        return view('admin.rapports.enseignants', compact('enseignants'));
+        $specialites = Enseignant::select('specialite', DB::raw('count(*) as total'))
+                                ->whereNotNull('specialite')
+                                ->groupBy('specialite')
+                                ->get();
+
+        return view('admin.rapports.enseignants', compact('enseignants', 'specialites'));
     }
 
     public function rapportClasses()
@@ -600,7 +648,12 @@ class AdminController extends Controller
                         ->orderBy('nom_classe')
                         ->get();
 
-        return view('admin.rapports.classes', compact('classes'));
+        $effectifsParNiveau = Classe::join('niveaux', 'classes.niveau_id', '=', 'niveaux.id')
+                                   ->select('niveaux.nom_niveau', DB::raw('sum(classes.etudiants_count) as total_etudiants'))
+                                   ->groupBy('niveaux.nom_niveau')
+                                   ->get();
+
+        return view('admin.rapports.classes', compact('classes', 'effectifsParNiveau'));
     }
 
     public function rapportMatieres()
@@ -610,7 +663,9 @@ class AdminController extends Controller
                           ->orderBy('nom_matiere')
                           ->get();
 
-        return view('admin.rapports.matieres', compact('matieres'));
+        $matieresParNiveau = Niveau::withCount('matieres')->with('matieres')->get();
+
+        return view('admin.rapports.matieres', compact('matieres', 'matieresParNiveau'));
     }
 
     // ========================================
