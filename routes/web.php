@@ -40,28 +40,29 @@ Route::middleware(['auth', 'roleMid:admin'])->group(function () {
     Route::put('/admin/etudiants/{etudiant}', [AdminController::class, 'updateEtudiant'])->name('admin.etudiants.update');
     Route::delete('/admin/etudiants/{etudiant}', [AdminController::class, 'destroyEtudiant'])->name('admin.etudiants.destroy');
     // Gestion des matières
-
-
-        Route::get('/', [AdminController::class, 'indexMatieres'])->name('admin.matieres.index');
+    Route::prefix('matieres')->name('admin.matieres.')->group(function () {
+        Route::get('/', [AdminController::class, 'indexMatieres'])->name('index');
         Route::get('/create', [AdminController::class, 'createMatiere'])->name('create');
         Route::post('/', [AdminController::class, 'storeMatiere'])->name('store');
         Route::get('/{matiere}', [AdminController::class, 'showMatiere'])->name('show');
         Route::get('/{matiere}/edit', [AdminController::class, 'editMatiere'])->name('edit');
         Route::put('/{matiere}', [AdminController::class, 'updateMatiere'])->name('update');
         Route::delete('/{matiere}', [AdminController::class, 'destroyMatiere'])->name('destroy');
+    });
 
     // Gestion des classes
-
-        Route::get('/', [AdminController::class, 'indexClasses'])->name('admin.classes.index');
+    Route::prefix('classes')->name('admin.classes.')->group(function () {
+        Route::get('/', [AdminController::class, 'indexClasses'])->name('index');
         Route::get('/create', [AdminController::class, 'createClasse'])->name('create');
         Route::post('/', [AdminController::class, 'storeClasse'])->name('store');
         Route::get('/{classe}', [AdminController::class, 'showClasse'])->name('show');
         Route::get('/{classe}/edit', [AdminController::class, 'editClasse'])->name('edit');
         Route::put('/{classe}', [AdminController::class, 'updateClasse'])->name('update');
         Route::delete('/{classe}', [AdminController::class, 'destroyClasse'])->name('destroy');
+    });
 
     // Gestion des affectations
-    Route::prefix('affectations')->name('affectations.')->group(function () {
+    Route::prefix('affectations')->name('admin.affectations.')->group(function () {
         Route::get('/', [AdminController::class, 'indexAffectations'])->name('index');
         Route::get('/create', [AdminController::class, 'createAffectation'])->name('create');
         Route::post('/', [AdminController::class, 'storeAffectation'])->name('store');
@@ -69,7 +70,7 @@ Route::middleware(['auth', 'roleMid:admin'])->group(function () {
     });
 
     // Gestion des années scolaires
-    Route::prefix('annees')->name('annees.')->group(function () {
+    Route::prefix('annees')->name('admin.annees.')->group(function () {
         Route::get('/', [AdminController::class, 'indexAnnees'])->name('index');
         Route::get('/create', [AdminController::class, 'createAnnee'])->name('create');
         Route::post('/', [AdminController::class, 'storeAnnee'])->name('store');
@@ -79,24 +80,18 @@ Route::middleware(['auth', 'roleMid:admin'])->group(function () {
     });
 
     // Rapports
-    Route::prefix('rapports')->name('rapports.')->group(function () {
+    Route::prefix('rapports')->name('admin.rapports.')->group(function () {
         Route::get('/', [AdminController::class, 'rapports'])->name('index');
         Route::get('/general', [AdminController::class, 'rapportGeneral'])->name('general');
         Route::get('/enseignants', [AdminController::class, 'rapportEnseignants'])->name('enseignants');
         Route::get('/classes', [AdminController::class, 'rapportClasses'])->name('classes');
         Route::get('/matieres', [AdminController::class, 'rapportMatieres'])->name('matieres');
     });
-     // Routes utilitaires
-     Route::get('/admin/search', [AdminController::class, 'search'])->name('admin.search');
-   // Routes Export/Import/Bulk
-    Route::post('/import-users', [AdminController::class, 'importUsers'])->name('admin.import.users');
-    Route::get('/export-users', [AdminController::class, 'exportUsers'])->name('admin.export.users');
-    Route::get('/download-template', [AdminController::class, 'downloadTemplate'])->name('admin.download.template');
-    Route::post('/bulk-delete', [AdminController::class, 'bulkDelete'])->name('admin.bulk.delete');
-    Route::post('/bulk-action', [AdminController::class, 'bulkAction'])->name('admin.bulk.action');
-    Route::post('/toggle-status', [AdminController::class, 'toggleStatus'])->name('admin.toggle.status');
 
-
+    // Routes utilitaires
+    Route::get('/search', [AdminController::class, 'search'])->name('admin.search');
+    Route::get('/matieres-by-niveau/{niveau_id}', [AdminController::class, 'getMatieresByNiveau'])->name('matieres.by.niveau');
+    Route::get('/classes-by-niveau/{niveau_id}', [AdminController::class, 'getClassesByNiveau'])->name('classes.by.niveau');
 });
 
 Route::middleware(['auth', 'roleMid:enseignant'])->group(function () {
