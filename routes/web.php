@@ -100,7 +100,13 @@ Route::middleware(['auth', 'roleMid:enseignant'])->group(function () {
 
 Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
     Route::get('/etudiant/dashboard', [EtudiantController::class, 'index'])->name("etudiant.dashboard");
+    Route::get('/etudiant/classes', [EtudiantController::class, 'classes'])->name('etudiant.classes');
+    Route::get('/etudiant/matieres', [EtudiantController::class, 'matieres'])->name('etudiant.matieres');
+    Route::get('/etudiant/emploi', [EtudiantController::class, 'emploiDuTemps'])->name('etudiant.emploi');
+    Route::get('/etudiant/annee', [EtudiantController::class, 'anneeScolaire'])->name('etudiant.annee');
 });
+
+
 
 
 
