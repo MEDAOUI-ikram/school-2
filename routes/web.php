@@ -104,6 +104,8 @@ Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
     Route::get('/etudiant/matieres', [EtudiantController::class, 'matieres'])->name('etudiant.matieres');
     Route::get('/etudiant/emploi', [EtudiantController::class, 'emploiDuTemps'])->name('etudiant.emploi');
     Route::get('/etudiant/annee', [EtudiantController::class, 'anneeScolaire'])->name('etudiant.annee');
+    Route::get('/etudiant/infos', [EtudiantController::class, 'infos'])->name('etudiant.infos');
+
 });
 
 

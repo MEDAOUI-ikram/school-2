@@ -10,17 +10,19 @@
         <div class="info-display">
             <p>Aucune classe assignée pour le moment.</p>
         </div>
-    @else
-        <div id="classesList">
-            @foreach($classes as $classe)
-                <div class="list-item" onclick="consulterDetailClasse({{ json_encode($classe) }})">
-                    <h4>{{ $classe->nomClasse }}</h4>
-                    <p>Année: {{ $classe->annee }} | Niveau: {{ $classe->niveau }}</p>
-                    <p>Nombre d'étudiants: {{ $classe->etudiants->count() }}</p>
-                </div>
-            @endforeach
-        </div>
-    @endif
+   @else
+    <div id="classesList">
+        @foreach($classes as $classe)
+            <div class="list-item" onclick="consulterDetailClasse({{ json_encode($classe) }})">
+                <h4>{{ $classe['nomClasse'] }}</h4>
+                <p>Année: {{ $classe['annee'] }}</p>
+                <!-- Any other properties should also use array notation -->
+                <p>Niveau: {{ $classe['niveau'] ?? 'N/A' }}</p>
+                <p>Effectif: {{ $classe['effectif'] ?? 'N/A' }}</p>
+            </div>
+        @endforeach
+    </div>
+@endif
 </div>
 @endsection
 
