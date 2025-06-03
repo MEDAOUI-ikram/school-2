@@ -19,455 +19,165 @@
 
 
 
-@extends('layouts.etudiant')
+@extends('layouts.app')
 
-@section('title', 'Tableau de Bord - Étudiant')
+@section('title', 'Tableau de Bord Étudiant')
 
 @section('content')
-<div class="section">
-    <h2>Tableau de Bord</h2>
-    <div class="grid">
-        <div>
-            <h3>Résumé Classes</h3>
-            <div class="info-display">
-                <p>Classe actuelle: <strong>{{ $classe->nomClasse ?? 'Aucune' }}</strong></p>
-                <p>Année: <strong>{{ $classe->annee ?? '-' }}</strong></p>
-                <a href="{{ route('etudiant.classes') }}" class="btn">Consulter Classes</a>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-blue-600 rounded-lg">
+                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Tableau de Bord Étudiant</h1>
+                    <p class="text-gray-600">Bienvenue, {{ $etudiant['nom'] }}</p>
+                </div>
             </div>
         </div>
-        <div>
-            <h3>Résumé Matières</h3>
-            <div class="info-display">
-                <p>Nombre de matières: <strong>{{ $matieres->count() }}</strong></p>
-                <a href="{{ route('etudiant.matieres') }}" class="btn">Consulter Matières</a>
-            </div>
-        </div>
-    </div>
 
-    <!-- Informations personnelles résumées -->
-     <div class="etudiant-summary">
-        <h3>Mes Informations</h3>
-        <div class="info-display">
-            @foreach($infos as $key => $value)
-                <p><strong>{{ ucfirst($key) }}:</strong> {{ $value }}</p>
-            @endforeach
+        <!-- Navigation Tabs -->
+        <div class="mb-6">
+            <nav class="flex space-x-8" aria-label="Tabs">
+                <a href="#dashboard" class="tab-link active bg-blue-100 text-blue-700 px-3 py-2 font-medium text-sm rounded-md">
+                    Tableau de Bord
+                </a>
+                <a href="{{ route('etudiant.matieres') }}" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 font-medium text-sm rounded-md">
+                    Mes Matières
+                </a>
+                <a href="{{ route('etudiant.infos') }}" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 font-medium text-sm rounded-md">
+                    Mes Informations
+                </a>
+            </nav>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Matières</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ $infos['nbMatieres'] }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Niveau</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ $etudiant['niveau'] }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Matières Principales</dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    {{ $matieres->where('coefficient', '>=', 4)->count() }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matières Principales -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Mes Matières Principales</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Matières avec les coefficients les plus élevés</p>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @foreach($matieres->where('coefficient', '>=', 3) as $matiere)
+                    <div class="p-4 border rounded-lg bg-white">
+                        <h4 class="font-medium">{{ $matiere['nomMatiere'] }}</h4>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mt-2">
+                            Coeff. {{ $matiere['coefficient'] }}
+                        </span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        <!-- Répartition des coefficients -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Répartition des Coefficients</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Analyse de l'importance de vos matières</p>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center p-4 border rounded-lg bg-red-50">
+                        <div class="text-2xl font-bold text-red-600">
+                            {{ $matieres->where('coefficient', '>=', 4)->count() }}
+                        </div>
+                        <div class="text-sm text-red-700">Matières Majeures</div>
+                        <div class="text-xs text-red-600">Coefficient ≥ 4</div>
+                    </div>
+                    <div class="text-center p-4 border rounded-lg bg-orange-50">
+                        <div class="text-2xl font-bold text-orange-600">
+                            {{ $matieres->where('coefficient', 3)->count() }}
+                        </div>
+                        <div class="text-sm text-orange-700">Matières Importantes</div>
+                        <div class="text-xs text-orange-600">Coefficient = 3</div>
+                    </div>
+                    <div class="text-center p-4 border rounded-lg bg-blue-50">
+                        <div class="text-2xl font-bold text-blue-600">
+                            {{ $matieres->where('coefficient', '<=', 2)->count() }}
+                        </div>
+                        <div class="text-sm text-blue-700">Matières Complémentaires</div>
+                        <div class="text-xs text-blue-600">Coefficient ≤ 2</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-@endsection 
 
- 
-
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interface Étudiant - {{ config('app.name', 'Laravel') }}</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .section h2 {
-            margin-bottom: 15px;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-
-        .btn {
-            background: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-        .btn:hover {
-            background: #2980b9;
-        }
-
-        .btn-secondary {
-            background: #95a5a6;
-        }
-
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-
-        .list-item {
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        .list-item:hover {
-            background: #f8f9fa;
-            border-color: #3498db;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .student-info {
-            background: #e8f4fd;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .navigation {
-            margin-bottom: 20px;
-        }
-
-        .nav-btn {
-            background: #34495e;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .nav-btn.active {
-            background: #3498db;
-        }
-
-        .info-display {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 10px 0;
-        }
-
-        select {
-            margin: 5px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        @media (max-width: 768px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- En-tête avec informations étudiant -->
-        <div class="header">
-            <div class="student-info">
-                <h1>Interface Étudiant</h1>
-                <p><strong>Nom:</strong> <span id="studentName">-</span></p>
-                <p><strong>Email:</strong> <span id="studentEmail">-</span></p>
-                <p><strong>Niveau:</strong> <span id="studentLevel">-</span></p>
-            </div>
-        </div>
-
-        <!-- Navigation -->
-        <div class="navigation">
-            <button class="nav-btn active" onclick="showSection('dashboard')">Tableau de Bord</button>
-            <button class="nav-btn" onclick="showSection('classes')">Mes Classes</button>
-            <button class="nav-btn" onclick="showSection('matieres')">Mes Matières</button>
-            <button class="nav-btn" onclick="showSection('infos')">Infos Personnelles</button>
-        </div>
-
-        <!-- Section Tableau de Bord -->
-        <div id="dashboard" class="section">
-            <h2>Tableau de Bord</h2>
-            <div class="grid">
-                <div>
-                    <h3>Résumé Classes</h3>
-                    <div id="classesSummary">
-                        <p>Nombre de classes: <span id="classCount">0</span></p>
-                        <button class="btn" onclick="etudiant.consulterClasses(); afficherClasses()">Consulter Classes</button>
-                    </div>
-                </div>
-                <div>
-                    <h3>Résumé Matières</h3>
-                    <div id="matieresSummary">
-                        <p>Nombre de matières: <span id="matterCount">0</span></p>
-                        <button class="btn" onclick="etudiant.consulterMatieres(); afficherMatieres()">Consulter Matières</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section Classes -->
-        <div id="classes" class="section hidden">
-            <h2>Mes Classes</h2>
-            <button class="btn" onclick="etudiant.consulterClasses(); afficherClasses()">Actualiser Liste</button>
-            <div id="classesList"></div>
-        </div>
-
-        <!-- Section Matières -->
-        <div id="matieres" class="section hidden">
-            <h2>Mes Matières</h2>
-            <button class="btn" onclick="etudiant.consulterMatieres(); afficherMatieres()">Actualiser Liste</button>
-            <div id="matieresList"></div>
-        </div>
-
-        <!-- Section Informations Personnelles -->
-        <div id="infos" class="section hidden">
-            <h2>Informations Personnelles</h2>
-            <button class="btn" onclick="etudiant.consulterInfosPersonnelles(); afficherInfosPersonnelles()">Consulter Informations</button>
-            <div id="infosDisplay"></div>
-            
-            <h3>Modifier Informations</h3>
-            <div>
-                <input type="text" id="newName" placeholder="Nouveau nom" style="margin: 5px; padding: 8px;">
-                <input type="email" id="newEmail" placeholder="Nouvel email" style="margin: 5px; padding: 8px;">
-                <select id="newLevel">
-                    <option value="">Choisir un niveau</option>
-                    <option value="Primaire">Primaire</option>
-                    <option value="Collège">Collège</option>
-                    <option value="Lycée">Lycée</option>
-                </select>
-                <br>
-                <button class="btn" onclick="modifierInfos()">Modifier</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Classe Etudiant avec les nouvelles données
-        class Etudiant {
-            constructor(nom, email, password, niveau) {
-                this.nom = nom;
-                this.email = email;
-                this.password = password;
-                this.niveau = niveau;
-                
-                // Classes par niveau scolaire
-                this.classes = [
-                    { id: 1, nomClasse: "6ème A", annee: "2024", nbEtudiants: 28 },
-                    { id: 2, nomClasse: "5ème B", annee: "2024", nbEtudiants: 30 },
-                    { id: 3, nomClasse: "4ème Sciences", annee: "2024", nbEtudiants: 25 }
-                ];
-                
-                // Matières du programme scolaire marocain
-                this.matieres = [
-                    { id: 1, nomMatiere: "Arabe", coefficient: 4 },
-                    { id: 2, nomMatiere: "Français", coefficient: 3 },
-                    { id: 3, nomMatiere: "Mathématiques", coefficient: 4 },
-                    { id: 4, nomMatiere: "Anglais", coefficient: 2 },
-                    { id: 5, nomMatiere: "Physique-Chimie", coefficient: 3 },
-                    { id: 6, nomMatiere: "Sciences de la Vie et de la Terre (SVT)", coefficient: 3 },
-                    { id: 7, nomMatiere: "Histoire-Géographie", coefficient: 2 },
-                    { id: 8, nomMatiere: "Éducation Islamique", coefficient: 2 },
-                    { id: 9, nomMatiere: "Éducation Physique et Sport", coefficient: 1 },
-                    { id: 10, nomMatiere: "Informatique", coefficient: 2 },
-                    { id: 11, nomMatiere: "Arts Plastiques", coefficient: 1 },
-                    { id: 12, nomMatiere: "Philosophie", coefficient: 3 }
-                ];
-            }
-
-            // Méthodes du diagramme UML
-            consulterClasses() {
-                console.log(`${this.nom} consulte ses classes`);
-                console.log("Classes trouvées:", this.classes);
-                return this.classes;
-            }
-
-            consulterMatieres() {
-                console.log(`${this.nom} consulte ses matières`);
-                console.log("Matières trouvées:", this.matieres);
-                return this.matieres;
-            }
-
-            consulterInfosPersonnelles() {
-                console.log(`${this.nom} consulte ses informations personnelles`);
-                const infos = {
-                    nom: this.nom,
-                    email: this.email,
-                    niveau: this.niveau,
-                    nbClasses: this.classes.length,
-                    nbMatieres: this.matieres.length
-                };
-                console.log("Informations:", infos);
-                return infos;
-            }
-
-            // Méthodes supplémentaires pour la gestion
-            modifierInfos(newNom, newEmail, newNiveau) {
-                if (newNom) this.nom = newNom;
-                if (newEmail) this.email = newEmail;
-                if (newNiveau) this.niveau = newNiveau;
-                console.log("Informations modifiées:", { nom: this.nom, email: this.email, niveau: this.niveau });
-            }
-
-            ajouterClasse(classe) {
-                this.classes.push(classe);
-                console.log("Classe ajoutée:", classe);
-            }
-
-            ajouterMatiere(matiere) {
-                this.matieres.push(matiere);
-                console.log("Matière ajoutée:", matiere);
-            }
-        }
-
-        // Instance de l'étudiant avec niveau scolaire
-         const etudiant = new Etudiant(
-        //     "Ahmed Benali", 
-        //     "ahmed.benali@ecole.ma", 
-        //     "password123", 
-        //     "Collège"
-         );
-
-        // Fonctions d'affichage
-        function afficherInfosEtudiant() {
-            document.getElementById('studentName').textContent = etudiant.nom;
-            document.getElementById('studentEmail').textContent = etudiant.email;
-            document.getElementById('studentLevel').textContent = etudiant.niveau;
-            document.getElementById('classCount').textContent = etudiant.classes.length;
-            document.getElementById('matterCount').textContent = etudiant.matieres.length;
-        }
-
-        function afficherClasses() {
-            const classesList = document.getElementById('classesList');
-            const classes = etudiant.consulterClasses();
-            
-            classesList.innerHTML = '';
-            classes.forEach(classe => {
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                div.innerHTML = `
-                    <h4>${classe.nomClasse}</h4>
-                    <p>Année: ${classe.annee} | Étudiants: ${classe.nbEtudiants}</p>
-                `;
-                div.onclick = () => consulterDetailClasse(classe);
-                classesList.appendChild(div);
-            });
-        }
-
-        function afficherMatieres() {
-            const matieresList = document.getElementById('matieresList');
-            const matieres = etudiant.consulterMatieres();
-            
-            matieresList.innerHTML = '';
-            matieres.forEach(matiere => {
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                div.innerHTML = `
-                    <h4>${matiere.nomMatiere}</h4>
-                    <p>Coefficient: ${matiere.coefficient}</p>
-                `;
-                div.onclick = () => consulterDetailMatiere(matiere);
-                matieresList.appendChild(div);
-            });
-        }
-
-        function afficherInfosPersonnelles() {
-            const infosDisplay = document.getElementById('infosDisplay');
-            const infos = etudiant.consulterInfosPersonnelles();
-            
-            infosDisplay.innerHTML = `
-                <div class="info-display">
-                    <h4>Informations Détaillées</h4>
-                    <p><strong>Nom:</strong> ${infos.nom}</p>
-                    <p><strong>Email:</strong> ${infos.email}</p>
-                    <p><strong>Niveau:</strong> ${infos.niveau}</p>
-                    <p><strong>Nombre de classes:</strong> ${infos.nbClasses}</p>
-                    <p><strong>Nombre de matières:</strong> ${infos.nbMatieres}</p>
-                </div>
-            `;
-        }
-
-        function consulterDetailClasse(classe) {
-            alert(`Détails de la classe: ${classe.nomClasse}\nAnnée: ${classe.annee}\nÉtudiants: ${classe.nbEtudiants}`);
-        }
-
-        function consulterDetailMatiere(matiere) {
-            alert(`Détails de la matière: ${matiere.nomMatiere}\nCoefficient: ${matiere.coefficient}`);
-        }
-
-        function modifierInfos() {
-            const newName = document.getElementById('newName').value;
-            const newEmail = document.getElementById('newEmail').value;
-            const newLevel = document.getElementById('newLevel').value;
-            
-            etudiant.modifierInfos(newName, newEmail, newLevel);
-            afficherInfosEtudiant();
-            
-            // Réinitialiser les champs
-            document.getElementById('newName').value = '';
-            document.getElementById('newEmail').value = '';
-            document.getElementById('newLevel').value = '';
-            
-            alert('Informations modifiées avec succès!');
-        }
-
-        // Navigation entre sections
-        function showSection(sectionName) {
-            // Masquer toutes les sections
-            const sections = ['dashboard', 'classes', 'matieres', 'infos'];
-            sections.forEach(section => {
-                document.getElementById(section).classList.add('hidden');
-            });
-            
-            // Afficher la section sélectionnée
-            document.getElementById(sectionName).classList.remove('hidden');
-            
-            // Mettre à jour les boutons de navigation
-            const navButtons = document.querySelectorAll('.nav-btn');
-            navButtons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-
-        // Initialisation
-        window.onload = function() {
-            afficherInfosEtudiant();
-            console.log("Interface étudiant initialisée");
-            console.log("Étudiant:", etudiant);
-        };
-    </script>
-</body>
-</html>
+<style>
+.tab-link.active {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+.tab-link:hover {
+    color: #374151;
+}
+</style>
+@endsection

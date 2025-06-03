@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EtudiantController;
 use App\Http\Controllers\EnseignantController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ClasseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -106,6 +107,16 @@ Route::middleware(['auth', 'roleMid:admin'])->group(function () {
 
 Route::middleware(['auth', 'roleMid:enseignant'])->group(function () {
     Route::get('/enseignant/dashboard', [EnseignantController::class, 'index'])->name("enseignant.dashboard");
+    // Routes pour l'enseignant
+Route::prefix('enseignant')->name('enseignant.')->group(function () {
+    Route::get('/dashboard', [EnseignantController::class, 'index'])->name('dashboard');
+    Route::get('/classes', [EnseignantController::class, 'classes'])->name('classes');
+    Route::get('/etudiants', [EnseignantController::class, 'etudiants'])->name('etudiants');
+    Route::get('/emploi-du-temps', [EnseignantController::class, 'emploiDuTemps'])->name('emploi-du-temps');
+    Route::get('/notes', [EnseignantController::class, 'notes'])->name('notes');
+    Route::get('/infos', [EnseignantController::class, 'infos'])->name('infos');
+    Route::post('/infos', [EnseignantController::class, 'updateInfos'])->name('updateInfos');
+});
 });
 
 Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
@@ -117,6 +128,37 @@ Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
     Route::get('/etudiant/infos', [EtudiantController::class, 'infos'])->name('etudiant.infos');
 
 });
+
+
+
+
+// routes/web.php
+use App\Http\Controllers\Etudiant\MatiereController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/etudiant/matieres', [MatiereController::class, 'index'])->name('etudiant.matieres');
+});
+
+
+
+
+
+
+// Routes pour l'étudiant
+Route::prefix('etudiant')->name('etudiant.')->group(function () {
+    Route::get('/dashboard', [EtudiantController::class, 'index'])->name('dashboard');
+    Route::get('/matieres', [EtudiantController::class, 'matieres'])->name('matieres');
+    Route::get('/infos', [EtudiantController::class, 'infos'])->name('infos');
+    Route::post('/infos', [EtudiantController::class, 'updateInfos'])->name('updateInfos');
+});
+
+
+
+
+
+
+
+
 
 
 
