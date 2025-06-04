@@ -72,8 +72,10 @@ Route::middleware(['auth', 'roleMid:admin'])->group(function () {
     // Gestion des affectations
     Route::prefix('affectations')->name('affectations.')->group(function () {
         Route::get('/', [AdminController::class, 'indexAffectations'])->name('index');
+
         Route::get('/create', [AdminController::class, 'createAffectation'])->name('create');
         Route::post('/', [AdminController::class, 'storeAffectation'])->name('store');
+         Route::put('/{affectation}', [AdminController::class, 'destroyAffectation'])->name('edit');
         Route::delete('/{affectation}', [AdminController::class, 'destroyAffectation'])->name('destroy');
     });
 

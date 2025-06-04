@@ -96,16 +96,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="heures_par_semaine" class="form-label">Heures par semaine</label>
-                            <input type="number" class="form-control @error('heures_par_semaine') is-invalid @enderror"
-                                   id="heures_par_semaine" name="heures_par_semaine"
-                                   value="{{ old('heures_par_semaine') }}"
-                                   min="1" max="40" step="0.5" placeholder="Ex: 4">
-                            @error('heures_par_semaine')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        
                         <div class="col-md-6 mb-3">
                             <label for="coefficient" class="form-label">Coefficient spécifique</label>
                             <input type="number" class="form-control @error('coefficient') is-invalid @enderror"
@@ -119,17 +110,7 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label for="notes" class="form-label">Notes</label>
-                            <textarea class="form-control @error('notes') is-invalid @enderror"
-                                      id="notes" name="notes" rows="3"
-                                      placeholder="Notes ou commentaires sur cette affectation">{{ old('notes') }}</textarea>
-                            @error('notes')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+
 
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('admin.affectations.index') }}" class="btn btn-secondary">
