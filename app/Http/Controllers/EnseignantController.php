@@ -232,6 +232,16 @@ class EnseignantController extends Controller
 
         return redirect()->route('enseignant.infos')->with('success', 'Informations modifiées avec succès!');
     }
+public function matieres()
+{
+    $enseignant = Auth::user();
+    $matieres = Matiere::where('enseignant_id', $enseignant->id)
+        ->with('classe') // charge la relation si elle existe
+        ->get();
+
+    return view('enseignant.matieres', compact('matieres'));
+}
+
 
     /**
      * Ajouter une note

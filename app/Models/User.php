@@ -50,6 +50,10 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+public function classe()
+{
+    return $this->belongsTo(Classe::class, 'classe_id');
+}
 
     /**
      * Vérifier si l'utilisateur est étudiant

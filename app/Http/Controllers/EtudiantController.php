@@ -9,11 +9,11 @@ use App\Models\Classe;
 use App\Models\Matiere;
 use App\Models\EmploiDuTemps;
 use App\Models\AnneeScolaire;
-
+use App\Models\User;
 class EtudiantController extends Controller
 {
     // Tableau de bord étudiant
-//     public function index()
+    //  public function index()
 //     {
 //         $etudiant = Auth::user(); // On suppose que l'étudiant est connecté
 //        $classes = $etudiant->classes ?? collect(); // en cas de null
@@ -59,92 +59,75 @@ class EtudiantController extends Controller
 
 
  public function index()
-    {
-        // Données simulées pour l'étudiant
-        $etudiant = [
-            'nom' => 'Ahmed Benali',
-            'email' => 'ahmed.benali@ecole.ma',
-            'niveau' => 'Collège'
-        ];
+{
+    $user = Auth::user();
 
-        // Classes simulées
-        $classes = collect([
-            ['id' => 1, 'nomClasse' => '6ème A', 'annee' => '2024', 'nbEtudiants' => 28],
-            ['id' => 2, 'nomClasse' => '5ème B', 'annee' => '2024', 'nbEtudiants' => 30],
-            ['id' => 3, 'nomClasse' => '4ème Sciences', 'annee' => '2024', 'nbEtudiants' => 25]
-        ]);
+    // Récupérer la classe de l'étudiant
+    $classe = Classe::find($user->classe_id);
 
-        // Matières simulées
-        $matieres = collect([
-            ['id' => 1, 'nomMatiere' => 'Arabe', 'coefficient' => 4],
-            ['id' => 2, 'nomMatiere' => 'Français', 'coefficient' => 3],
-            ['id' => 3, 'nomMatiere' => 'Mathématiques', 'coefficient' => 4],
-            ['id' => 4, 'nomMatiere' => 'Anglais', 'coefficient' => 2],
-            ['id' => 5, 'nomMatiere' => 'Physique-Chimie', 'coefficient' => 3],
-            ['id' => 6, 'nomMatiere' => 'Sciences de la Vie et de la Terre (SVT)', 'coefficient' => 3],
-            ['id' => 7, 'nomMatiere' => 'Histoire-Géographie', 'coefficient' => 2],
-            ['id' => 8, 'nomMatiere' => 'Éducation Islamique', 'coefficient' => 2],
-            ['id' => 9, 'nomMatiere' => 'Éducation Physique et Sport', 'coefficient' => 1],
-            ['id' => 10, 'nomMatiere' => 'Informatique', 'coefficient' => 2]
-        ]);
+    // Récupérer les matières associées à cette classe (via la table pivot)
+    $matieres = $classe 
+        ? $classe->matieres()->with('enseignants')->get()
+        : collect();
 
-        // Informations personnelles
-        $infos = [
-            'nom' => $etudiant['nom'],
-            'email' => $etudiant['email'],
-            'niveau' => $etudiant['niveau'],
-            'nbClasses' => $classes->count(),
-            'nbMatieres' => $matieres->count()
-        ];
+    // Infos personnelles
+    $infos = [
+        'nom' => $user->name,
+        'email' => $user->email,
+        'niveau' => $user->niveau,
+        'nbClasses' => Classe::count(),
+        'nbMatieres' => $matieres->count()
+    ];
 
-        return view('etudiant.dashboard', compact('etudiant', 'classes', 'matieres', 'infos'));
-    }
-
-    public function classes()
-    {
-        $classes = collect([
-            ['id' => 1, 'nomClasse' => '6ème A', 'annee' => '2024', 'nbEtudiants' => 28],
-            ['id' => 2, 'nomClasse' => '5ème B', 'annee' => '2024', 'nbEtudiants' => 30],
-            ['id' => 3, 'nomClasse' => '4ème Sciences', 'annee' => '2024', 'nbEtudiants' => 25]
-        ]);
-
-        return view('etudiant.classes', compact('classes'));
-    }
-
-    public function matieres()
-    {
-        $matieres = collect([
-            ['id' => 1, 'nomMatiere' => 'Arabe', 'coefficient' => 4],
-            ['id' => 2, 'nomMatiere' => 'Français', 'coefficient' => 3],
-            ['id' => 3, 'nomMatiere' => 'Mathématiques', 'coefficient' => 4],
-            ['id' => 4, 'nomMatiere' => 'Anglais', 'coefficient' => 2],
-            ['id' => 5, 'nomMatiere' => 'Physique-Chimie', 'coefficient' => 3],
-            ['id' => 6, 'nomMatiere' => 'Sciences de la Vie et de la Terre (SVT)', 'coefficient' => 3],
-            ['id' => 7, 'nomMatiere' => 'Histoire-Géographie', 'coefficient' => 2],
-            ['id' => 8, 'nomMatiere' => 'Éducation Islamique', 'coefficient' => 2],
-            ['id' => 9, 'nomMatiere' => 'Éducation Physique et Sport', 'coefficient' => 1],
-            ['id' => 10, 'nomMatiere' => 'Informatique', 'coefficient' => 2]
-        ]);
-
-        return view('etudiant.matieres', compact('matieres'));
-    }
-
-    public function infos()
-    {
-        $etudiant = [
-            'nom' => 'Ahmed Benali',
-            'email' => 'ahmed.benali@ecole.ma',
-            'niveau' => 'Collège'
-        ];
-
-        return view('etudiant.infos', compact('etudiant'));
-    }
-
-    public function updateInfos(Request $request)
-    {
-        // Ici vous pouvez traiter la mise à jour des informations
-        // Pour l'instant, on simule juste un retour
-        
-        return redirect()->route('etudiant.infos')->with('success', 'Informations modifiées avec succès!');
-    }
+    return view('etudiant.dashboard', compact('user', 'classe', 'matieres', 'infos'));
 }
+
+public function classes()
+{
+    $classes = Classe::withCount('etudiants')->get();
+
+    return view('etudiant.classes', compact('classes'));
+}
+
+public function matieres()
+{
+    $user = Auth::user();
+
+    $classe = Classe::find($user->classe_id);
+    $matieres = $classe 
+        ? $classe->matieres()->with('enseignants')->get()
+        : collect();
+
+    return view('etudiant.matieres', compact('matieres'));
+}
+
+public function infos()
+{
+    $etudiant = Auth::user();
+
+    return view('etudiant.infos', compact('etudiant'));
+}
+
+public function updateInfos(Request $request)
+{
+    $request->validate([
+        'nom' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . Auth::id(),
+        'niveau' => 'nullable|string|max:255',
+        'password' => 'nullable|min:8|confirmed'
+    ]);
+
+    $user = Auth::user();
+    $user->name = $request->nom;
+    $user->email = $request->email;
+    if ($request->niveau) {
+        $user->niveau = $request->niveau;
+    }
+    if ($request->password) {
+        $user->password = bcrypt($request->password);
+    }
+
+    $user->save();
+
+    return redirect()->back()->with('success', 'Profil mis à jour avec succès');
+}}

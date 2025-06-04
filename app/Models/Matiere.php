@@ -24,6 +24,10 @@ class Matiere extends Model
     {
         return $this->belongsTo(Enseignant::class);
     }
+public function classe()
+{
+    return $this->belongsTo(Classe::class, 'classe_id');
+}
 
     /**
      * Obtenir le niveau auquel cette matière est enseignée.

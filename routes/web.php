@@ -118,6 +118,8 @@ Route::prefix('enseignant')->name('enseignant.')->group(function () {
     Route::get('/notes', [EnseignantController::class, 'notes'])->name('notes');
     Route::get('/infos', [EnseignantController::class, 'infos'])->name('infos');
     Route::post('/infos', [EnseignantController::class, 'updateInfos'])->name('updateInfos');
+    Route::get('/matieres', [EnseignantController::class, 'matieres'])->name('matieres');
+
 });
 });
 
@@ -146,12 +148,15 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-// Routes pour l'étudiant
-Route::prefix('etudiant')->name('etudiant.')->group(function () {
-    Route::get('/dashboard', [EtudiantController::class, 'index'])->name('dashboard');
-    Route::get('/matieres', [EtudiantController::class, 'matieres'])->name('matieres');
-    Route::get('/infos', [EtudiantController::class, 'infos'])->name('infos');
-    Route::post('/infos', [EtudiantController::class, 'updateInfos'])->name('updateInfos');
+// Routes étudiants
+Route::middleware(['auth'])->group(function () {
+    // Route::get('/etudiant/dashboard', [EtudiantController::class, 'dashboard'])->name('etudiant.dashboard');
+    Route::get('/etudiant/classes', [EtudiantController::class, 'classes'])->name('etudiant.classes');
+    Route::get('/etudiant/matieres', [EtudiantController::class, 'matieres'])->name('etudiant.matieres');
+    Route::get('/etudiant/notes', [EtudiantController::class, 'notes'])->name('etudiant.notes');
+    Route::get('/etudiant/emploi', [EtudiantController::class, 'emploi'])->name('etudiant.emploi');
+    Route::get('/etudiant/infos', [EtudiantController::class, 'infos'])->name('etudiant.infos');
+    Route::get('/etudiant/parametres', [EtudiantController::class, 'parametres'])->name('etudiant.parametres');
 });
 
 
