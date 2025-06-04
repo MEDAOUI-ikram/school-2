@@ -1,4 +1,4 @@
- @extends('layouts.student')
+ @extends('layouts.etudiant')
 
 @section('title', 'Tableau de Bord - Étudiant')
 
@@ -22,7 +22,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Informations personnelles résumées -->
     <div class="student-summary">
         <h3>Mes Informations</h3>

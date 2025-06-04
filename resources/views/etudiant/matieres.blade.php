@@ -1,11 +1,11 @@
-@extends('layouts.student')
+@extends('layouts.etudiant')
 
 @section('title', 'Mes Matières - Étudiant')
 
 @section('content')
 <div class="section">
     <h2>Mes Matières</h2>
-    
+
     @if($matieres->isEmpty())
         <div class="info-display">
             <p>Aucune matière disponible.</p>
