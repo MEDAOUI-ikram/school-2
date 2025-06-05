@@ -17,7 +17,7 @@ class EnseignantController extends Controller
     public function __construct()
     {
         // Décommentez si vous utilisez l'authentification
-        // $this->middleware(['auth', 'roleMid:enseignant']);
+        $this->middleware(['auth', 'roleMid:enseignant']);
     }
 
     /**
@@ -28,7 +28,7 @@ class EnseignantController extends Controller
         $enseignant = Auth::user(); // Supposons que l'enseignant est connecté
         
         // Si pas d'authentification, utilisez un ID fixe pour les tests
-        // $enseignant = Enseignant::find(1);
+         $enseignant = Enseignant::find(1);
         
         // Classes enseignées par cet enseignant
         $classes = Classe::where('enseignant_id', $enseignant->id)
