@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             MatiereSeeder::class,
             ClasseSeeder::class,
             AnneeScolaireSeeder::class,
-            // EmploiDuTempsSeeder::class, // Commenté temporairement en cas de problème
+             EmploiDuTempsSeeder::class, // Commenté temporairement en cas de problème
         ]);
 
         // Essayer de créer les emplois du temps avec gestion d'erreur

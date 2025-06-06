@@ -103,10 +103,12 @@ public function matieres()
 
 public function infos()
 {
-    $etudiant = Auth::user();
+    $etudiant = auth()->user(); // ou autre selon ton système d'authentification
 
-    return view('etudiant.infos', compact('etudiant'));
+    return view('etudiant.infos', ['infos' => $etudiant]);
 }
+
+
 
 public function updateInfos(Request $request)
 {
@@ -126,6 +128,7 @@ public function updateInfos(Request $request)
     if ($request->password) {
         $user->password = bcrypt($request->password);
     }
+    
 
     $user->save();
 

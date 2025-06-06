@@ -6,6 +6,7 @@ use App\Http\Controllers\EnseignantController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ClasseController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Etudiant\EmploiController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -123,6 +124,8 @@ Route::prefix('enseignant')->name('enseignant.')->group(function () {
 });
 });
 
+
+
 Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
     Route::get('/etudiant/dashboard', [EtudiantController::class, 'index'])->name("etudiant.dashboard");
     Route::get('/etudiant/classes', [EtudiantController::class, 'classes'])->name('etudiant.classes');
@@ -130,35 +133,14 @@ Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
     Route::get('/etudiant/emploi', [EtudiantController::class, 'emploiDuTemps'])->name('etudiant.emploi');
     Route::get('/etudiant/annee', [EtudiantController::class, 'anneeScolaire'])->name('etudiant.annee');
     Route::get('/etudiant/infos', [EtudiantController::class, 'infos'])->name('etudiant.infos');
+    Route::put('/etudiant/update-infos', [EtudiantController::class, 'updateInfos'])->name('etudiant.update-infos');
+   
+    Route::get('/etudiant/emploi', [EtudiantController::class, 'emploiDuTemps'])->name('etudiant.emploi');
 
 });
-
-
-
-
-// routes/web.php
-use App\Http\Controllers\Etudiant\MatiereController;
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/etudiant/matieres', [MatiereController::class, 'index'])->name('etudiant.matieres');
+Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
+    Route::get('/etudiant/emploi', [EmploiController::class, 'index'])->name('etudiant.emploi');
 });
-
-
-
-
-
-
-// Routes étudiants
-Route::middleware(['auth'])->group(function () {
-    // Route::get('/etudiant/dashboard', [EtudiantController::class, 'dashboard'])->name('etudiant.dashboard');
-    Route::get('/etudiant/classes', [EtudiantController::class, 'classes'])->name('etudiant.classes');
-    Route::get('/etudiant/matieres', [EtudiantController::class, 'matieres'])->name('etudiant.matieres');
-    Route::get('/etudiant/notes', [EtudiantController::class, 'notes'])->name('etudiant.notes');
-    Route::get('/etudiant/emploi', [EtudiantController::class, 'emploi'])->name('etudiant.emploi');
-    Route::get('/etudiant/infos', [EtudiantController::class, 'infos'])->name('etudiant.infos');
-    Route::get('/etudiant/parametres', [EtudiantController::class, 'parametres'])->name('etudiant.parametres');
-});
-
 
 
 
