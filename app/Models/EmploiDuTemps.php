@@ -1,5 +1,5 @@
 <?php
-// app/Models/EmploiDuTemps.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +9,7 @@ class EmploiDuTemps extends Model
 {
     use HasFactory;
 
-    protected $table = 'emploi_du_temps';
+    protected $table = 'emploi_du_temps'; // Nom exact de la table
 
     protected $fillable = [
         'classe_id',
@@ -18,6 +18,7 @@ class EmploiDuTemps extends Model
         'jour',
         'heure_debut',
         'heure_fin',
+        'salle'
     ];
 
     public function classe()
@@ -32,6 +33,6 @@ class EmploiDuTemps extends Model
 
     public function enseignant()
     {
-        return $this->belongsTo(Enseignant::class);
+        return $this->belongsTo(User::class, 'enseignant_id');
     }
 }

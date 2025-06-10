@@ -10,62 +10,25 @@ class Classe extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nom_classe',
-        'annee',
-        'niveau_id',
+        'nom_classe',    // Nom correct de la colonne
+        'annee',         // Colonne obligatoire
+        'enseignant_id',
+        'niveau_id'
     ];
 
-    /**
-     * Obtenir le niveau de cette classe.
-     */
-    public function niveau()
+    // Accessor pour compatibilité avec le code existant
+    public function getNomAttribute()
     {
-        return $this->belongsTo(Niveau::class);
+        return $this->nom_classe;
     }
 
-    /**
-     * Obtenir les étudiants de cette classe.
-     */
     public function etudiants()
     {
-        return $this->belongsToMany(Etudiant::class, 'classe_etudiant')
-                    ->withPivot('nom_groupe', 'date_inscription')
-                    ->withTimestamps();
+        return $this->hasMany(Etudiant::class);
     }
 
-    /**
-     * Obtenir les enseignants de cette classe avec leurs matières.
-     */
-    public function enseignants()
+    public function enseignant()
     {
-        return $this->belongsToMany(Enseignant::class, 'classe_enseignant_matiere')
-                    ->withPivot('matiere_id')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Obtenir les matières enseignées dans cette classe.
-     */
-    public function matieres()
-    {
-        return $this->belongsToMany(Matiere::class, 'classe_enseignant_matiere')
-                    ->withPivot('enseignant_id')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Obtenir l'emploi du temps de cette classe.
-     */
-    public function emploiDuTemps()
-    {
-        return $this->hasMany(EmploiDuTemps::class);
-    }
-
-    /**
-     * Obtenir les assignations enseignant-matière pour cette classe.
-     */
-    public function assignations()
-    {
-        return $this->hasMany(ClasseEnseignantMatiere::class);
+        return $this->belongsTo(User::class, 'enseignant_id');
     }
 }

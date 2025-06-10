@@ -10,47 +10,16 @@ class Matiere extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nom_matiere',
+        'nom_matiere',   // Nom correct de la colonne
         'coefficient',
-        'enseignant_id',
         'niveau_id',
         'description',
+        'enseignant_id'
     ];
 
-    /**
-     * Obtenir l'enseignant qui enseigne cette matière.
-     */
-    public function enseignant()
+    // Accessor pour compatibilité
+    public function getNomAttribute()
     {
-        return $this->belongsTo(Enseignant::class);
-    }
-public function classe()
-{
-    return $this->belongsTo(Classe::class, 'classe_id');
-}
-
-    /**
-     * Obtenir le niveau auquel cette matière est enseignée.
-     */
-    public function niveau()
-    {
-        return $this->belongsTo(Niveau::class);
-    }
-
-    /**
-     * Obtenir les classes où cette matière est enseignée.
-     */
-    public function classes()
-    {
-        return $this->belongsToMany(Classe::class, 'classe_enseignant_matiere', 'matiere_id', 'classe_id')
-                    ->withPivot('enseignant_id');
-    }
-
-    /**
-     * Obtenir les emplois du temps pour cette matière.
-     */
-    public function emploiDuTemps()
-    {
-        return $this->hasMany(EmploiDuTemps::class);
+        return $this->nom_matiere;
     }
 }

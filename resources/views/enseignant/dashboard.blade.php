@@ -1,13 +1,13 @@
 
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Espace Enseignant - Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+@extends('layouts.enseignant')
+
+@section('title', 'Tableau de Bord - Enseignant')
+
+@section('content')
+    <!-- Ajouter les meta tags nécessaires dans le head -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
     <style>
         * {
             margin: 0;
@@ -478,6 +478,10 @@
             margin-bottom: 0.25rem;
         }
 
+        .text-center {
+            text-align: center;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero-title {
@@ -509,8 +513,7 @@
             }
         }
     </style>
-</head>
-<body>
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
@@ -519,7 +522,9 @@
                 <h1 class="logo-text">Espace Enseignant</h1>
             </div>
             <div class="user-section">
-                <span class="user-name" id="teacherName">Prof. Fatima Zahra</span>
+                <span class="user-name" id="teacherName">
+                    {{ Auth::user()->nom ?? 'Enseignant' }} {{ Auth::user()->prenom ?? '' }}
+                </span>
                 <i class="fas fa-user-circle user-avatar" onclick="showProfile()"></i>
             </div>
         </div>
@@ -556,9 +561,9 @@
             <!-- Hero Section -->
             <section class="hero-section">
                 <h2 class="hero-title">Bienvenue dans votre espace enseignant</h2>
-                <p class="hero-subtitle">
+                <!-- <p class="hero-subtitle">
                     Gérez vos classes, suivez vos étudiants, consultez votre emploi du temps et bien plus encore.
-                </p>
+                </p> -->
             </section>
 
             <!-- Statistics Cards -->
@@ -569,7 +574,9 @@
                             <i class="fas fa-users"></i>
                         </div>
                     </div>
-                    <div class="stat-value" id="totalClasses">8</div>
+                    <div class="stat-value" id="totalClasses">
+                        {{ isset($stats['total_classes']) ? $stats['total_classes'] : ($classes ? $classes->count() : 0) }}
+                    </div>
                     <div class="stat-label">Classes actives</div>
                 </div>
                 
@@ -579,7 +586,9 @@
                             <i class="fas fa-user-graduate"></i>
                         </div>
                     </div>
-                    <div class="stat-value" id="totalEtudiants">187</div>
+                    <div class="stat-value" id="totalEtudiants">
+                        {{ isset($stats['total_etudiants']) ? $stats['total_etudiants'] : ($etudiants ? $etudiants->count() : 0) }}
+                    </div>
                     <div class="stat-label">Étudiants inscrits</div>
                 </div>
                 
@@ -589,7 +598,9 @@
                             <i class="fas fa-clipboard-check"></i>
                         </div>
                     </div>
-                    <div class="stat-value" id="notesEnAttente">12</div>
+                    <div class="stat-value" id="notesEnAttente">
+                        {{ isset($stats['notes_en_attente']) ? $stats['notes_en_attente'] : ($notes ? $notes->count() : 0) }}
+                    </div>
                     <div class="stat-label">Notes en attente</div>
                 </div>
                 
@@ -599,7 +610,9 @@
                             <i class="fas fa-calendar-check"></i>
                         </div>
                     </div>
-                    <div class="stat-value" id="coursAujourdhui">3</div>
+                    <div class="stat-value" id="coursAujourdhui">
+                        {{ isset($stats['cours_aujourdhui']) ? $stats['cours_aujourdhui'] : (isset($emploi_temps) ? collect($emploi_temps)->where('jour', now()->locale('fr')->dayName)->count() : 0) }}
+                    </div>
                     <div class="stat-label">Cours aujourd'hui</div>
                 </div>
             </section>
@@ -637,7 +650,29 @@
                     Activité récente
                 </h3>
                 <div class="activity-list" id="recentActivity">
-                    <!-- Activities will be populated by JavaScript -->
+                    @forelse($activities ?? [] as $activity)
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="{{ $activity->icon ?? 'fas fa-info' }}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">{{ $activity->title ?? $activity->description ?? 'Activité' }}</div>
+                                <div class="activity-time">
+                                    {{ isset($activity->created_at) ? $activity->created_at->diffForHumans() : 'Récemment' }}
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-info"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Bienvenue dans votre espace enseignant</div>
+                                <div class="activity-time">Commencez à utiliser l'application pour voir vos activités</div>
+                            </div>
+                        </div>
+                    @endforelse
                 </div>
             </section>
         </div>
@@ -666,7 +701,26 @@
                         </tr>
                     </thead>
                     <tbody id="classesTable">
-                        <!-- Classes will be populated by JavaScript -->
+                        @forelse($classes ?? [] as $classe)
+                            <tr>
+                                <td>{{ $classe->nom ?? 'N/A' }}</td>
+                                <td>{{ $classe->matiere->nom ?? $classe->matiere ?? 'N/A' }}</td>
+                                <td>{{ isset($classe->etudiants) ? $classe->etudiants->count() : ($classe->etudiants_count ?? 0) }}</td>
+                                <td>{{ $classe->salle ?? 'N/A' }}</td>
+                                <td>
+                                    <button class="btn" style="padding: 0.5rem; margin-right: 0.5rem;" onclick="editClass({{ $classe->id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem;" onclick="deleteClass({{ $classe->id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">Aucune classe trouvée</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </section>
@@ -683,6 +737,9 @@
                     <div style="display: flex; gap: 1rem;">
                         <select id="classFilter" class="form-input" style="width: auto;" onchange="filterStudents()">
                             <option value="">Toutes les classes</option>
+                            @foreach($classes ?? [] as $classe)
+                                <option value="{{ $classe->nom }}">{{ $classe->nom }}</option>
+                            @endforeach
                         </select>
                         <button class="btn" onclick="showAddStudentModal()">
                             <i class="fas fa-plus"></i>
@@ -701,7 +758,26 @@
                         </tr>
                     </thead>
                     <tbody id="studentsTable">
-                        <!-- Students will be populated by JavaScript -->
+                        @forelse($etudiants ?? [] as $etudiant)
+                            <tr data-class="{{ isset($etudiant->classe) ? $etudiant->classe->nom : ($etudiant->classe_nom ?? '') }}">
+                                <td>{{ $etudiant->nom ?? 'N/A' }} {{ $etudiant->prenom ?? '' }}</td>
+                                <td>{{ isset($etudiant->classe) ? $etudiant->classe->nom : ($etudiant->classe_nom ?? 'N/A') }}</td>
+                                <td>{{ $etudiant->email ?? 'N/A' }}</td>
+                                <td>{{ $etudiant->telephone ?? 'N/A' }}</td>
+                                <td>
+                                    <button class="btn" style="padding: 0.5rem; margin-right: 0.5rem;" onclick="editStudent({{ $etudiant->id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem;" onclick="deleteStudent({{ $etudiant->id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">Aucun étudiant trouvé</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </section>
@@ -712,10 +788,44 @@
             <section class="content-section">
                 <h3 class="section-title">
                     <i class="fas fa-calendar-alt section-icon"></i>
-                    Emploi du Temps - Semaine du 3 au 7 Juin 2025
+                    Emploi du Temps - Semaine du {{ now()->startOfWeek()->format('d') }} au {{ now()->endOfWeek()->format('d M Y') }}
                 </h3>
                 <div class="schedule-grid" id="scheduleGrid">
-                    <!-- Schedule will be populated by JavaScript -->
+                    <!-- Header -->
+                    <div class="schedule-header">Horaire</div>
+                    <div class="schedule-header">Lundi</div>
+                    <div class="schedule-header">Mardi</div>
+                    <div class="schedule-header">Mercredi</div>
+                    <div class="schedule-header">Jeudi</div>
+                    <div class="schedule-header">Vendredi</div>
+                    
+                    @php
+                        $times = ['08:00', '10:00', '14:00', '16:00'];
+                        $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+                    @endphp
+                    
+                    @foreach($times as $time)
+                        <div class="schedule-time">{{ $time }}</div>
+                        @foreach($days as $day)
+                            @php
+                                $cours = null;
+                                if(isset($emploi_temps)) {
+                                    $cours = collect($emploi_temps)->first(function($c) use ($day, $time) {
+                                        return ($c->jour ?? '') === $day && ($c->heure_debut ?? '') === $time;
+                                    });
+                                }
+                            @endphp
+                            <div class="schedule-cell">
+                                @if($cours)
+                                    <div class="schedule-event">
+                                        {{ isset($cours->classe) ? $cours->classe->nom : ($cours->classe_nom ?? 'N/A') }}<br>
+                                        {{ isset($cours->matiere) ? $cours->matiere->nom : ($cours->matiere_nom ?? 'N/A') }}<br>
+                                        {{ $cours->salle ?? 'N/A' }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    @endforeach
                 </div>
             </section>
         </div>
@@ -745,7 +855,34 @@
                         </tr>
                     </thead>
                     <tbody id="notesTable">
-                        <!-- Notes will be populated by JavaScript -->
+                        @forelse($notes ?? [] as $note)
+                            <tr>
+                                <td>
+                                    {{ isset($note->etudiant) ? $note->etudiant->nom : ($note->etudiant_nom ?? 'N/A') }} 
+                                    {{ isset($note->etudiant) ? $note->etudiant->prenom : ($note->etudiant_prenom ?? '') }}
+                                </td>
+                                <td>
+                                    {{ isset($note->etudiant->classe) ? $note->etudiant->classe->nom : ($note->classe_nom ?? 'N/A') }}
+                                </td>
+                                <td>{{ $note->type ?? 'N/A' }}</td>
+                                <td>{{ $note->note ?? 0 }}/20</td>
+                                <td>
+                                    {{ isset($note->created_at) ? $note->created_at->format('d/m/Y') : (isset($note->date) ? $note->date : 'N/A') }}
+                                </td>
+                                <td>
+                                    <button class="btn" style="padding: 0.5rem; margin-right: 0.5rem;" onclick="editNote({{ $note->id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-secondary" style="padding: 0.5rem;" onclick="deleteNote({{ $note->id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center">Aucune note trouvée</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </section>
@@ -758,40 +895,43 @@
                     <i class="fas fa-user-cog section-icon"></i>
                     Mon Profil
                 </h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div>
-                        <div class="form-group">
-                            <label class="form-label">Nom complet</label>
-                            <input type="text" class="form-input" id="profileName" value="Prof. Fatima Zahra Benali">
+                <form id="profileForm" onsubmit="updateProfile(event)">
+                    @csrf
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <div class="form-group">
+                                <label class="form-label">Nom</label>
+                                <input type="text" class="form-input" id="profileNom" name="nom" value="{{ Auth::user()->nom ?? '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Prénom</label>
+                                <input type="text" class="form-input" id="profilePrenom" name="prenom" value="{{ Auth::user()->prenom ?? '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" id="profileEmail" name="email" value="{{ Auth::user()->email ?? '' }}">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-input" id="profileEmail" value="f.benali@ecole.ma">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Téléphone</label>
-                            <input type="tel" class="form-input" id="profilePhone" value="+212 6 12 34 56 78">
+                        <div>
+                            <div class="form-group">
+                                <label class="form-label">Téléphone</label>
+                                <input type="tel" class="form-input" id="profilePhone" name="telephone" value="{{ Auth::user()->telephone ?? '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Établissement</label>
+                                <input type="text" class="form-input" id="profileSchool" name="etablissement" value="{{ Auth::user()->etablissement ?? '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Spécialité</label>
+                                <input type="text" class="form-input" id="profileSpecialite" name="specialite" value="{{ Auth::user()->specialite ?? '' }}">
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="form-group">
-                            <label class="form-label">Matières enseignées</label>
-                            <input type="text" class="form-input" id="profileSubjects" value="Mathématiques, Physique">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Établissement</label>
-                            <input type="text" class="form-input" id="profileSchool" value="Lycée Hassan II">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Années d'expérience</label>
-                            <input type="number" class="form-input" id="profileExperience" value="12">
-                        </div>
-                    </div>
-                </div>
-                <button class="btn" onclick="updateProfile()">
-                    <i class="fas fa-save"></i>
-                    Sauvegarder
-                </button>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i>
+                        Sauvegarder
+                    </button>
+                </form>
             </section>
         </div>
     </main>
@@ -804,21 +944,25 @@
                 <button class="close-btn" onclick="closeModal('addNoteModal')">&times;</button>
             </div>
             <form onsubmit="addNote(event)">
+                @csrf
                 <div class="form-group">
                     <label class="form-label">Classe</label>
-                    <select class="form-input" id="noteClass" required>
+                    <select class="form-input" id="noteClass" name="classe_id" required>
                         <option value="">Sélectionner une classe</option>
+                        @foreach($classes ?? [] as $classe)
+                            <option value="{{ $classe->id }}">{{ $classe->nom }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Étudiant</label>
-                    <select class="form-input" id="noteStudent" required>
+                    <select class="form-input" id="noteStudent" name="etudiant_id" required>
                         <option value="">Sélectionner un étudiant</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Type d'évaluation</label>
-                    <select class="form-input" id="noteType" required>
+                    <select class="form-input" id="noteType" name="type" required>
                         <option value="">Sélectionner le type</option>
                         <option value="Contrôle">Contrôle</option>
                         <option value="Devoir">Devoir</option>
@@ -828,7 +972,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Note (/20)</label>
-                    <input type="number" class="form-input" id="noteValue" min="0" max="20" step="0.25" required>
+                    <input type="number" class="form-input" id="noteValue" name="note" min="0" max="20" step="0.25" required>
                 </div>
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" class="btn">
@@ -851,17 +995,23 @@
                 <button class="close-btn" onclick="closeModal('addClassModal')">&times;</button>
             </div>
             <form onsubmit="addClass(event)">
+                @csrf
                 <div class="form-group">
                     <label class="form-label">Nom de la classe</label>
-                    <input type="text" class="form-input" id="className" required>
+                    <input type="text" class="form-input" id="className" name="nom" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Matière</label>
-                    <input type="text" class="form-input" id="classSubject" required>
+                    <select class="form-input" id="classSubject" name="matiere_id" required>
+                        <option value="">Sélectionner une matière</option>
+                        @foreach($matieres ?? [] as $matiere)
+                            <option value="{{ $matiere->id }}">{{ $matiere->nom }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Salle</label>
-                    <input type="text" class="form-input" id="classRoom" required>
+                    <input type="text" class="form-input" id="classRoom" name="salle" required>
                 </div>
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" class="btn">
@@ -884,23 +1034,31 @@
                 <button class="close-btn" onclick="closeModal('addStudentModal')">&times;</button>
             </div>
             <form onsubmit="addStudent(event)">
+                @csrf
                 <div class="form-group">
-                    <label class="form-label">Nom complet</label>
-                    <input type="text" class="form-input" id="studentName" required>
+                    <label class="form-label">Nom</label>
+                    <input type="text" class="form-input" id="studentNom" name="nom" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prénom</label>
+                    <input type="text" class="form-input" id="studentPrenom" name="prenom" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Classe</label>
-                    <select class="form-input" id="studentClass" required>
+                    <select class="form-input" id="studentClass" name="classe_id" required>
                         <option value="">Sélectionner une classe</option>
+                        @foreach($classes ?? [] as $classe)
+                            <option value="{{ $classe->id }}">{{ $classe->nom }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="studentEmail" required>
+                    <input type="email" class="form-input" id="studentEmail" name="email" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Téléphone</label>
-                    <input type="tel" class="form-input" id="studentPhone">
+                    <input type="tel" class="form-input" id="studentPhone" name="telephone">
                 </div>
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" class="btn">
@@ -916,80 +1074,27 @@
     </div>
 
     <script>
-        // Database simulation
-        let database = {
-            teacher: {
-                name: "Prof. Fatima Zahra Benali",
-                email: "f.benali@ecole.ma",
-                phone: "+212 6 12 34 56 78",
-                subjects: "Mathématiques, Physique",
-                school: "Lycée Hassan II",
-                experience: 12
-            },
-            classes: [
-                { id: 1, name: "2ème A", subject: "Mathématiques", room: "A101", students: 28 },
-                { id: 2, name: "1ère B", subject: "Mathématiques", room: "A102", students: 25 },
-                { id: 3, name: "2ème C", subject: "Physique", room: "B201", students: 30 },
-                { id: 4, name: "1ère A", subject: "Physique", room: "B202", students: 22 },
-                { id: 5, name: "3ème A", subject: "Mathématiques", room: "A103", students: 26 },
-                { id: 6, name: "3ème B", subject: "Physique", room: "B203", students: 24 },
-                { id: 7, name: "2ème B", subject: "Mathématiques", room: "A104", students: 27 },
-                { id: 8, name: "1ère C", subject: "Physique", room: "B204", students: 23 }
-            ],
-            students: [
-                { id: 1, name: "Ahmed Ben Salem", class: "2ème A", email: "ahmed.salem@email.com", phone: "+212 6 11 22 33 44" },
-                { id: 2, name: "Fatima El Amrani", class: "2ème A", email: "fatima.amrani@email.com", phone: "+212 6 22 33 44 55" },
-                { id: 3, name: "Youssef Alami", class: "1ère B", email: "youssef.alami@email.com", phone: "+212 6 33 44 55 66" },
-                { id: 4, name: "Aicha Bennani", class: "2ème C", email: "aicha.bennani@email.com", phone: "+212 6 44 55 66 77" },
-                { id: 5, name: "Omar Fassi", class: "1ère A", email: "omar.fassi@email.com", phone: "+212 6 55 66 77 88" },
-                { id: 6, name: "Salma Tazi", class: "3ème A", email: "salma.tazi@email.com", phone: "+212 6 66 77 88 99" },
-                { id: 7, name: "Khalid Mansouri", class: "3ème B", email: "khalid.mansouri@email.com", phone: "+212 6 77 88 99 00" },
-                { id: 8, name: "Nadia Chraibi", class: "2ème B", email: "nadia.chraibi@email.com", phone: "+212 6 88 99 00 11" },
-                { id: 9, name: "Hassan Alaoui", class: "1ère C", email: "hassan.alaoui@email.com", phone: "+212 6 99 00 11 22" },
-                { id: 10, name: "Zineb Idrissi", class: "2ème A", email: "zineb.idrissi@email.com", phone: "+212 6 00 11 22 33" }
-            ],
-            notes: [
-                { id: 1, student: "Ahmed Ben Salem", class: "2ème A", type: "Contrôle", note: 16.5, date: "2025-06-05" },
-                { id: 2, student: "Fatima El Amrani", class: "2ème A", type: "Devoir", note: 18, date: "2025-06-04" },
-                { id: 3, student: "Youssef Alami", class: "1ère B", type: "Examen", note: 14, date: "2025-06-03" },
-                { id: 4, student: "Aicha Bennani", class: "2ème C", type: "Contrôle", note: 15.5, date: "2025-06-05" },
-                { id: 5, student: "Omar Fassi", class: "1ère A", type: "Participation", note: 17, date: "2025-06-06" },
-                { id: 6, student: "Salma Tazi", class: "3ème A", type: "Devoir", note: 19, date: "2025-06-04" },
-                { id: 7, student: "Khalid Mansouri", class: "3ème B", type: "Examen", note: 13.5, date: "2025-06-02" },
-                { id: 8, student: "Nadia Chraibi", class: "2ème B", type: "Contrôle", note: 16, date: "2025-06-05" }
-            ],
-            schedule: [
-                { day: "Lundi", time: "08:00", class: "2ème A", subject: "Mathématiques", room: "A101" },
-                { day: "Lundi", time: "10:00", class: "1ère B", subject: "Mathématiques", room: "A102" },
-                { day: "Lundi", time: "14:00", class: "2ème C", subject: "Physique", room: "B201" },
-                { day: "Mardi", time: "08:00", class: "1ère A", subject: "Physique", room: "B202" },
-                { day: "Mardi", time: "10:00", class: "3ème A", subject: "Mathématiques", room: "A103" },
-                { day: "Mardi", time: "14:00", class: "3ème B", subject: "Physique", room: "B203" },
-                { day: "Mercredi", time: "08:00", class: "2ème B", subject: "Mathématiques", room: "A104" },
-                { day: "Mercredi", time: "10:00", class: "1ère C", subject: "Physique", room: "B204" },
-                { day: "Jeudi", time: "08:00", class: "2ème A", subject: "Mathématiques", room: "A101" },
-                { day: "Jeudi", time: "10:00", class: "1ère B", subject: "Mathématiques", room: "A102" },
-                { day: "Vendredi", time: "08:00", class: "2ème C", subject: "Physique", room: "B201" },
-                { day: "Vendredi", time: "10:00", class: "1ère A", subject: "Physique", room: "B202" }
-            ],
-            activities: [
-                { icon: "fas fa-plus", title: "Nouvelle note ajoutée pour Ahmed Ben Salem", time: "Il y a 2 heures", type: "note" },
-                { icon: "fas fa-user-plus", title: "Nouvel étudiant inscrit : Zineb Idrissi", time: "Il y a 5 heures", type: "student" },
-                { icon: "fas fa-calendar", title: "Emploi du temps mis à jour", time: "Hier à 14:30", type: "schedule" },
-                { icon: "fas fa-check", title: "Évaluation complétée pour 3ème A", time: "Il y a 2 jours", type: "evaluation" },
-                { icon: "fas fa-bell", title: "Rappel: Réunion pédagogique demain", time: "Il y a 3 jours", type: "reminder" }
-            ]
-        };
+        // CSRF Token for AJAX requests
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            updateDashboardStats();
-            loadRecentActivity();
-            loadClasses();
-            loadStudents();
-            loadNotes();
-            loadSchedule();
-            populateClassSelects();
+            // Set up CSRF token for all AJAX requests
+            if (typeof $ !== 'undefined') {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+            }
+
+            // Load students when class is selected in note modal
+            const noteClassSelect = document.getElementById('noteClass');
+            if (noteClassSelect) {
+                noteClassSelect.addEventListener('change', function() {
+                    loadStudentsByClass(this.value, 'noteStudent');
+                });
+            }
         });
 
         // Tab navigation
@@ -1003,316 +1108,168 @@
             tabLinks.forEach(link => link.classList.remove('active'));
             
             // Show selected tab content
-            document.getElementById(tabName).classList.add('active');
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
             
             // Add active class to clicked tab link
-            event.target.closest('.tab-link').classList.add('active');
-        }
-
-        // Update dashboard statistics
-        function updateDashboardStats() {
-            document.getElementById('totalClasses').textContent = database.classes.length;
-            document.getElementById('totalEtudiants').textContent = database.students.length;
-            document.getElementById('notesEnAttente').textContent = database.notes.filter(n => !n.validated).length;
-            
-            // Count today's courses
-            const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long' });
-            const todayCourses = database.schedule.filter(s => s.day.toLowerCase() === today.toLowerCase());
-            document.getElementById('coursAujourdhui').textContent = todayCourses.length;
-        }
-
-        // Load recent activity
-        function loadRecentActivity() {
-            const activityContainer = document.getElementById('recentActivity');
-            activityContainer.innerHTML = '';
-            
-            database.activities.forEach(activity => {
-                const activityItem = document.createElement('div');
-                activityItem.className = 'activity-item';
-                activityItem.innerHTML = `
-                    <div class="activity-icon">
-                        <i class="${activity.icon}"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">${activity.title}</div>
-                        <div class="activity-time">${activity.time}</div>
-                    </div>
-                `;
-                activityContainer.appendChild(activityItem);
-            });
-        }
-
-        // Load classes table
-        function loadClasses() {
-            const classesTable = document.getElementById('classesTable');
-            classesTable.innerHTML = '';
-            
-            database.classes.forEach(cls => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${cls.name}</td>
-                    <td>${cls.subject}</td>
-                    <td>${cls.students}</td>
-                    <td>${cls.room}</td>
-                    <td>
-                        <button class="btn" style="padding: 0.5rem; margin-right: 0.5rem;" onclick="editClass(${cls.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-secondary" style="padding: 0.5rem;" onclick="deleteClass(${cls.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                classesTable.appendChild(row);
-            });
-        }
-
-        // Load students table
-        function loadStudents() {
-            const studentsTable = document.getElementById('studentsTable');
-            studentsTable.innerHTML = '';
-            
-            database.students.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.name}</td>
-                    <td>${student.class}</td>
-                    <td>${student.email}</td>
-                    <td>${student.phone}</td>
-                    <td>
-                        <button class="btn" style="padding: 0.5rem; margin-right: 0.5rem;" onclick="editStudent(${student.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-secondary" style="padding: 0.5rem;" onclick="deleteStudent(${student.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                studentsTable.appendChild(row);
-            });
-        }
-
-        // Load notes table
-        function loadNotes() {
-            const notesTable = document.getElementById('notesTable');
-            notesTable.innerHTML = '';
-            
-            database.notes.forEach(note => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${note.student}</td>
-                    <td>${note.class}</td>
-                    <td>${note.type}</td>
-                    <td>${note.note}/20</td>
-                    <td>${new Date(note.date).toLocaleDateString('fr-FR')}</td>
-                    <td>
-                        <button class="btn" style="padding: 0.5rem; margin-right: 0.5rem;" onclick="editNote(${note.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-secondary" style="padding: 0.5rem;" onclick="deleteNote(${note.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                notesTable.appendChild(row);
-            });
-        }
-
-        // Load schedule
-        function loadSchedule() {
-            const scheduleGrid = document.getElementById('scheduleGrid');
-            scheduleGrid.innerHTML = '';
-            
-            const times = ['08:00', '10:00', '14:00', '16:00'];
-            const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-            
-            // Header
-            scheduleGrid.innerHTML = '<div class="schedule-header">Horaire</div>';
-            days.forEach(day => {
-                scheduleGrid.innerHTML += `<div class="schedule-header">${day}</div>`;
-            });
-            
-            // Time slots
-            times.forEach(time => {
-                scheduleGrid.innerHTML += `<div class="schedule-time">${time}</div>`;
-                days.forEach(day => {
-                    const event = database.schedule.find(s => s.day === day && s.time === time);
-                    const cellContent = event ? 
-                        `<div class="schedule-event">${event.class}<br>${event.subject}<br>${event.room}</div>` : '';
-                    scheduleGrid.innerHTML += `<div class="schedule-cell">${cellContent}</div>`;
-                });
-            });
-        }
-
-        // Populate class selects
-        function populateClassSelects() {
-            const selects = ['noteClass', 'studentClass', 'classFilter'];
-            selects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (select) {
-                    // Keep the first option and clear the rest
-                    const firstOption = select.firstElementChild;
-                    select.innerHTML = '';
-                    if (firstOption) select.appendChild(firstOption);
-                    
-                    database.classes.forEach(cls => {
-                        const option = document.createElement('option');
-                        option.value = cls.name;
-                        option.textContent = cls.name;
-                        select.appendChild(option);
-                    });
+            if (event && event.target) {
+                const clickedLink = event.target.closest('.tab-link');
+                if (clickedLink) {
+                    clickedLink.classList.add('active');
                 }
-            });
+            }
+        }
+
+        // Load students by class
+        function loadStudentsByClass(classeId, selectId) {
+            const studentSelect = document.getElementById(selectId);
+            if (!studentSelect) return;
             
-            // Update student select when class is selected
-            document.getElementById('noteClass').addEventListener('change', function() {
-                const studentSelect = document.getElementById('noteStudent');
-                studentSelect.innerHTML = '<option value="">Sélectionner un étudiant</option>';
-                
-                if (this.value) {
-                    const studentsInClass = database.students.filter(s => s.class === this.value);
-                    studentsInClass.forEach(student => {
-                        const option = document.createElement('option');
-                        option.value = student.name;
-                        option.textContent = student.name;
-                        studentSelect.appendChild(option);
+            studentSelect.innerHTML = '<option value="">Sélectionner un étudiant</option>';
+            
+            if (classeId) {
+                fetch(`/enseignant/classes/${classeId}/etudiants`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (Array.isArray(data)) {
+                            data.forEach(student => {
+                                const option = document.createElement('option');
+                                option.value = student.id;
+                                option.textContent = `${student.nom} ${student.prenom}`;
+                                studentSelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('Erreur lors du chargement des étudiants');
                     });
-                }
-            });
+            }
         }
 
         // Modal functions
         function showAddNoteModal() {
-            document.getElementById('addNoteModal').classList.add('active');
+            const modal = document.getElementById('addNoteModal');
+            if (modal) modal.classList.add('active');
         }
 
         function showAddClassModal() {
-            document.getElementById('addClassModal').classList.add('active');
+            const modal = document.getElementById('addClassModal');
+            if (modal) modal.classList.add('active');
         }
 
         function showAddStudentModal() {
-            document.getElementById('addStudentModal').classList.add('active');
+            const modal = document.getElementById('addStudentModal');
+            if (modal) modal.classList.add('active');
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('active');
         }
 
         // Add note function
         function addNote(event) {
             event.preventDefault();
             
-            const newNote = {
-                id: database.notes.length + 1,
-                student: document.getElementById('noteStudent').value,
-                class: document.getElementById('noteClass').value,
-                type: document.getElementById('noteType').value,
-                note: parseFloat(document.getElementById('noteValue').value),
-                date: new Date().toISOString().split('T')[0]
-            };
+            const formData = new FormData(event.target);
             
-            database.notes.push(newNote);
-            
-            // Add to recent activity
-            database.activities.unshift({
-                icon: "fas fa-plus",
-                title: `Nouvelle note ajoutée pour ${newNote.student}`,
-                time: "À l'instant",
-                type: "note"
+            fetch('/enseignant/notes', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Note ajoutée avec succès !');
+                    closeModal('addNoteModal');
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'ajout de la note');
             });
-            
-            loadNotes();
-            loadRecentActivity();
-            updateDashboardStats();
-            closeModal('addNoteModal');
-            
-            // Reset form
-            event.target.reset();
-            
-            alert('Note ajoutée avec succès !');
         }
 
         // Add class function
         function addClass(event) {
             event.preventDefault();
             
-            const newClass = {
-                id: database.classes.length + 1,
-                name: document.getElementById('className').value,
-                subject: document.getElementById('classSubject').value,
-                room: document.getElementById('classRoom').value,
-                students: 0
-            };
+            const formData = new FormData(event.target);
             
-            database.classes.push(newClass);
-            
-            // Add to recent activity
-            database.activities.unshift({
-                icon: "fas fa-plus",
-                title: `Nouvelle classe créée : ${newClass.name}`,
-                time: "À l'instant",
-                type: "class"
+            fetch('/enseignant/classes', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Classe créée avec succès !');
+                    closeModal('addClassModal');
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la création de la classe');
             });
-            
-            loadClasses();
-            loadRecentActivity();
-            updateDashboardStats();
-            populateClassSelects();
-            closeModal('addClassModal');
-            
-            // Reset form
-            event.target.reset();
-            
-            alert('Classe créée avec succès !');
         }
 
         // Add student function
         function addStudent(event) {
             event.preventDefault();
             
-            const newStudent = {
-                id: database.students.length + 1,
-                name: document.getElementById('studentName').value,
-                class: document.getElementById('studentClass').value,
-                email: document.getElementById('studentEmail').value,
-                phone: document.getElementById('studentPhone').value
-            };
+            const formData = new FormData(event.target);
             
-            database.students.push(newStudent);
-            
-            // Update class student count
-            const classObj = database.classes.find(c => c.name === newStudent.class);
-            if (classObj) {
-                classObj.students++;
-            }
-            
-            // Add to recent activity
-            database.activities.unshift({
-                icon: "fas fa-user-plus",
-                title: `Nouvel étudiant inscrit : ${newStudent.name}`,
-                time: "À l'instant",
-                type: "student"
+            fetch('/enseignant/etudiants', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Étudiant ajouté avec succès !');
+                    closeModal('addStudentModal');
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'ajout de l\'étudiant');
             });
-            
-            loadStudents();
-            loadClasses();
-            loadRecentActivity();
-            updateDashboardStats();
-            closeModal('addStudentModal');
-            
-            // Reset form
-            event.target.reset();
-            
-            alert('Étudiant ajouté avec succès !');
         }
 
         // Filter students
         function filterStudents() {
             const filterValue = document.getElementById('classFilter').value;
-            const rows = document.querySelectorAll('#studentsTable tr');
+            const rows = document.querySelectorAll('#studentsTable tr[data-class]');
             
             rows.forEach(row => {
-                if (!filterValue || row.cells[1].textContent === filterValue) {
+                const classValue = row.getAttribute('data-class');
+                if (!filterValue || classValue === filterValue) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -1320,54 +1277,92 @@
             });
         }
 
-        // Edit functions (placeholders)
+        // Edit functions
         function editClass(id) {
-            alert(`Édition de la classe ID: ${id} (Fonctionnalité à implémenter)`);
+            window.location.href = `/enseignant/classes/${id}/edit`;
         }
 
         function editStudent(id) {
-            alert(`Édition de l'étudiant ID: ${id} (Fonctionnalité à implémenter)`);
+            window.location.href = `/enseignant/etudiants/${id}/edit`;
         }
 
         function editNote(id) {
-            alert(`Édition de la note ID: ${id} (Fonctionnalité à implémenter)`);
+            window.location.href = `/enseignant/notes/${id}/edit`;
         }
 
         // Delete functions
         function deleteClass(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette classe ?')) {
-                database.classes = database.classes.filter(c => c.id !== id);
-                loadClasses();
-                updateDashboardStats();
-                populateClassSelects();
-                alert('Classe supprimée avec succès !');
+                fetch(`/enseignant/classes/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Classe supprimée avec succès !');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression');
+                });
             }
         }
 
         function deleteStudent(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cet étudiant ?')) {
-                const student = database.students.find(s => s.id === id);
-                if (student) {
-                    // Update class student count
-                    const classObj = database.classes.find(c => c.name === student.class);
-                    if (classObj) {
-                        classObj.students--;
+                fetch(`/enseignant/etudiants/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json'
                     }
-                }
-                database.students = database.students.filter(s => s.id !== id);
-                loadStudents();
-                loadClasses();
-                updateDashboardStats();
-                alert('Étudiant supprimé avec succès !');
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Étudiant supprimé avec succès !');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression');
+                });
             }
         }
 
         function deleteNote(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
-                database.notes = database.notes.filter(n => n.id !== id);
-                loadNotes();
-                updateDashboardStats();
-                alert('Note supprimée avec succès !');
+                fetch(`/enseignant/notes/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Note supprimée avec succès !');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression');
+                });
             }
         }
 
@@ -1376,28 +1371,52 @@
             showTab('profil');
         }
 
-        function updateProfile() {
-            database.teacher.name = document.getElementById('profileName').value;
-            database.teacher.email = document.getElementById('profileEmail').value;
-            database.teacher.phone = document.getElementById('profilePhone').value;
-            database.teacher.subjects = document.getElementById('profileSubjects').value;
-            database.teacher.school = document.getElementById('profileSchool').value;
-            database.teacher.experience = parseInt(document.getElementById('profileExperience').value);
+        function updateProfile(event) {
+            event.preventDefault();
             
-            // Update navbar
-            document.getElementById('teacherName').textContent = database.teacher.name;
+            const formData = new FormData(event.target);
             
-            alert('Profil mis à jour avec succès !');
+            fetch('/enseignant/profil', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Profil mis à jour avec succès !');
+                    const teacherNameElement = document.getElementById('teacherName');
+                    if (teacherNameElement && data.user) {
+                        teacherNameElement.textContent = `${data.user.nom} ${data.user.prenom}`;
+                    }
+                } else {
+                    alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la mise à jour du profil');
+            });
         }
 
         // Stats function
         function showStats() {
-            const totalStudents = database.students.length;
-            const totalClasses = database.classes.length;
-            const totalNotes = database.notes.length;
-            const avgNote = database.notes.reduce((sum, note) => sum + note.note, 0) / database.notes.length;
-            
-            alert(`Statistiques:\n\nTotal étudiants: ${totalStudents}\nTotal classes: ${totalClasses}\nTotal notes: ${totalNotes}\nMoyenne générale: ${avgNote.toFixed(2)}/20`);
+            fetch('/enseignant/statistiques')
+                .then(response => response.json())
+                .then(data => {
+                    const message = `Statistiques:\n\n` +
+                        `Total étudiants: ${data.total_etudiants || 0}\n` +
+                        `Total classes: ${data.total_classes || 0}\n` +
+                        `Total notes: ${data.total_notes || 0}\n` +
+                        `Moyenne générale: ${data.moyenne_generale || 0}/20`;
+                    alert(message);
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors du chargement des statistiques');
+                });
         }
 
         // Close modals when clicking outside
@@ -1410,3 +1429,9 @@
             });
         });
     </script>
+
+    <!-- Add jQuery for AJAX if not already included -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Add Font Awesome for icons if not already included -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+@endsection

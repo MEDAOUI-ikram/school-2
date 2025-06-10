@@ -13,7 +13,7 @@ use App\Models\User;
 class EtudiantController extends Controller
 {
     // Tableau de bord étudiant
-    //  public function index()
+//      public function index()
 //     {
 //         $etudiant = Auth::user(); // On suppose que l'étudiant est connecté
 //        $classes = $etudiant->classes ?? collect(); // en cas de null
@@ -55,7 +55,7 @@ class EtudiantController extends Controller
 //         $annee = AnneeScolaire::where('active', true)->first();
 //         return view('etudiant.annee', compact('annee'));
 //     }
-// }
+//  }
 
 
  public function index()

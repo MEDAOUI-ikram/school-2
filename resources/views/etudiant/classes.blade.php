@@ -10,7 +10,7 @@
     }
 
     body {
-        background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+        background: linear-gradient(120deg,rgb(245, 248, 247) 0%,rgb(235, 235, 235) 100%);
         font-family: 'Inter', 'Segoe UI', sans-serif;
         margin: 0;
         padding: 0;
@@ -37,7 +37,7 @@
     .page-title {
         font-size: 2.5rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg,rgb(161, 173, 228) 0%,rgb(157, 183, 225) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -63,7 +63,7 @@
     .stat-item {
         text-align: center;
         padding: 15px 25px;
-        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        background: linear-gradient(135deg, #e3f2fd 0%,rgb(206, 208, 218) 100%);
         border-radius: 15px;
         border: 1px solid rgba(33, 150, 243, 0.2);
     }
@@ -71,7 +71,7 @@
     .stat-number {
         font-size: 1.8rem;
         font-weight: 700;
-        color: #1565c0;
+        color: #64b5f6;
         display: block;
     }
 
@@ -104,7 +104,7 @@
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(10px);
         font-size: 16px;
-        color: #1565c0;
+        color: #64b5f6;
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(33, 150, 243, 0.1);
     }
@@ -203,7 +203,7 @@
     }
 
     .card-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #64b5f6 0%, #64b5f6 100%);
         color: white;
         padding: 25px;
         position: relative;
@@ -283,7 +283,7 @@
 
     .info-value {
         font-size: 1rem;
-        color: #1565c0;
+        color: #64b5f6;
         font-weight: 600;
         margin: 0;
     }
@@ -356,7 +356,7 @@
         width: 60px;
         height: 60px;
         border-radius: 15px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #667eea 0%, #64b5f6 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -445,7 +445,7 @@
     }
 
     .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #667eea 0%, #64b5f6 100%);
         color: white;
         padding: 30px;
         border-radius: 25px 25px 0 0;

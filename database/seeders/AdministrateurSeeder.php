@@ -32,8 +32,12 @@ class AdministrateurSeeder extends Seeder
         ];
 
         foreach ($administrateurs as $admin) {
-            Administrateur::create($admin);
-        }
+    Administrateur::firstOrCreate(
+        ['courriel' => $admin['courriel']], // condition
+        $admin // données à insérer si non existant
+    );
+}
+
 
         // Créer des administrateurs supplémentaires avec la factory
         Administrateur::factory(2)->create();

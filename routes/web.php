@@ -108,22 +108,39 @@ Route::middleware(['auth', 'roleMid:admin'])->group(function () {
 });
 });
 
-Route::middleware(['auth', 'roleMid:enseignant'])->group(function () {
-    Route::get('/enseignant/dashboard', [EnseignantController::class, 'index'])->name("enseignant.dashboard");
-    // Routes pour l'enseignant
-Route::prefix('enseignant')->name('enseignant.')->group(function () {
-    Route::get('/dashboard', [EnseignantController::class, 'index'])->name('dashboard');
-    Route::get('/classes', [EnseignantController::class, 'classes'])->name('classes');
-    Route::get('/etudiants', [EnseignantController::class, 'etudiants'])->name('etudiants');
-    Route::get('/emploi-du-temps', [EnseignantController::class, 'emploiDuTemps'])->name('emploi-du-temps');
-    Route::get('/notes', [EnseignantController::class, 'notes'])->name('notes');
-    Route::get('/infos', [EnseignantController::class, 'infos'])->name('infos');
-    Route::post('/infos', [EnseignantController::class, 'updateInfos'])->name('updateInfos');
-    Route::get('/matieres', [EnseignantController::class, 'matieres'])->name('matieres');
 
-});
-});
 
+// Routes pour l'enseignant
+Route::middleware(['auth'])->prefix('enseignant')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [EnseignantController::class, 'dashboard'])->name('enseignant.dashboard');
+    
+    // Classes
+    Route::post('/classes', [EnseignantController::class, 'storeClasse']);
+    Route::delete('/classes/{id}', [EnseignantController::class, 'destroyClasse']);
+    Route::get('/classes/{id}/etudiants', [EnseignantController::class, 'getStudentsByClass']);
+    
+    // Étudiants
+    Route::post('/etudiants', [EnseignantController::class, 'storeEtudiant']);
+    Route::delete('/etudiants/{id}', [EnseignantController::class, 'destroyEtudiant']);
+    Route::get('etudiants/{etudiant}/edit', [EtudiantController::class, 'edit'])->name('etudiants.edit');
+    // Notes
+    Route::post('/notes', [EnseignantController::class, 'storeNote']);
+    Route::delete('/notes/{id}', [EnseignantController::class, 'destroyNote']);
+    
+    // Profil
+    Route::post('/profil', [EnseignantController::class, 'updateProfile']);
+    
+    // Statistiques
+    Route::get('/statistiques', [EnseignantController::class, 'getStatistiques']);
+Route::get('/enseignant/infos', [EnseignantController::class, 'infos'])->name('enseignant.infos');
+
+    Route::get('/enseignant/classes', [EnseignantController::class, 'index'])->name('enseignant.classes');
+Route::get('/enseignant/etudiants', [EnseignantController::class, 'etudiants'])->name('enseignant.etudiants');
+Route::get('/enseignant/emploi-du-temps', [EnseignantController::class, 'emploiDuTemps'])->name('enseignant.emploi-du-temps');
+    // emploi_du_temps 
+    Route::get('/emploi-du-temps', [EnseignantController::class, 'indexEmploiDuTemps'])->name('emploi-du-temps');
+});
 
 
 Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
@@ -134,8 +151,13 @@ Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
     Route::get('/etudiant/annee', [EtudiantController::class, 'anneeScolaire'])->name('etudiant.annee');
     Route::get('/etudiant/infos', [EtudiantController::class, 'infos'])->name('etudiant.infos');
     Route::put('/etudiant/update-infos', [EtudiantController::class, 'updateInfos'])->name('etudiant.update-infos');
+   Route::put('/etudiant/profil', [EtudiantController::class, 'profil'])->name('etudiant.profil');
    
     Route::get('/etudiant/emploi', [EtudiantController::class, 'emploiDuTemps'])->name('etudiant.emploi');
+    Route::middleware(['auth:etudiant'])->group(function () {
+    Route::get('/etudiant/dashboard', [EtudiantController::class, 'dashboard'])->name('etudiant.dashboard');
+    Route::post('/etudiant/profil', [EtudiantController::class, 'updateProfile'])->name('etudiant.profil.update');
+});
 
 });
 Route::middleware(['auth', 'roleMid:etudiant'])->group(function () {
